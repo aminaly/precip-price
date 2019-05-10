@@ -7,9 +7,8 @@ library(stringr)
 library(lucr)
 library(reshape2)
 
-setwd("~/Desktop/data/")
-prc <- read.csv("PriceData.csv")
-loc <- read.csv("locations.csv")
+prc <- read.csv("downloaded/PriceData.csv")
+loc <- read.csv("downloaded/locations.csv")
 
 ## Clean up price data to get it in the format you'd like and join with locations
 price <- prc %>% filter(product_source == "Local") %>% 
@@ -30,8 +29,8 @@ price$year <- format(as.Date(price$period_date, format="%m/%d/%y"),"%Y")
 price <- left_join(price, loc, by = "location") 
 
 ## Download price conversion rates and deflation calculator
-prc_conv <- read.csv("price_conversion.csv")
-def_conv <- read.csv("deflation_vals/deflation_calc.csv", check.names = F)
+prc_conv <- read.csv("downloaded/price_conversion.csv")
+def_conv <- read.csv("downloaded/deflation_calc.csv", check.names = F)
 
 ## Format deflation data
 def_conv <- melt(def_conv, na.rm = T)

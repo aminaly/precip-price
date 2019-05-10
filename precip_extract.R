@@ -6,15 +6,16 @@ library(lfe)
 library(lubridate)
 
 buf <- 2
-setwd("~/Desktop/data/")
 
 # read in africa shapefile (if you want to)
 #setwd("~/scratch/users/aminaly/winter_2019/")
-africa <- read_sf("Africa_SHP/Africa.shp")
-nigeria <- readRDS("nigeria.rds")
+#africa <- read_sf("Africa_SHP/Africa.shp")
+#nigeria <- readRDS("nigeria.rds")
 
 #setwd("~/scratch/groups/omramom/CHRIPS_monthly/")
-precipitation <- brick("chirps-v2-monthly.nc", band = 2) %>% crop(c(-25.35, 51.41, -46.97, 37.34))  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
+## NOTE if you want to run this you're going to have to move the chirps file into the right folder
+## I don't want to carry this massive file around
+precipitation <- brick("downloaded/chirps-v2-monthly.nc", band = 2) %>% crop(c(-25.35, 51.41, -46.97, 37.34))  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
 
 ## loop through every layer, for each unique location label and find precip, and add to table 
 locs <- unique(price[,c(1:2,16:17)])

@@ -1,0 +1,2 @@
+rds files of bootstraped data outputs
+Naming convetion: [buffer size]_[model type]_[commodity]_[season].rds
