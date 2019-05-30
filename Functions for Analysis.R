@@ -1,4 +1,6 @@
+setwd("/Users/amina/Documents/Stanford/precip-price")
 library(lfe)
+library(dplyr)
 
 #If you don't need to extract, just use this to get pp_data together
 buf <- 2
@@ -6,6 +8,8 @@ buf <- 2
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
 precipname <- paste0("precip/", buf, "_ppdata.csv")
+
+##### Data Cleaning #####
 
 #Clean up the precip data a little bit 
 clean_precip <- function(precip) {
@@ -192,6 +196,23 @@ calc_precip <- function(data) {
   
 }
 
+
+##### REGRESSIONS #####
+
+## regress as linear
+linear_regression <- function(data, var) {
+  
+  switch(var, 
+         "p_sow" = mod_data <- felm(log(def_value) ~ p_sow | market + yrmnth, data=data),
+         "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
+         "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
+         "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
+         "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
+  
+  return(mod_data)
+  
+}
+
 ##regress as quadratic
 quad_regression <- function(data, var) {
   
@@ -203,6 +224,59 @@ quad_regression <- function(data, var) {
          "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,2,raw=T) | market + yrmnth, data=data))
   
   return(mod_data)
+  
+}
+
+## linear interaction model with fixed effects
+linear_regression_interaction <- function(data, var) {
+  
+  switch(var, 
+         "p_sow" = mod_data <- lm(log(def_value) ~ p_sow +  p_sow * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_grow" = mod_data <- lm(log(def_value) ~ p_grow +  p_grow * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_harv" = mod_data <- lm(log(def_value) ~ p_harv +  p_harv * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_sup" = mod_data <- lm(log(def_value) ~ p_sup +  p_sup * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_onemonth" = mod_data <- lm(log(def_value) ~ p_onemonth +  p_onemonth * country  + as.factor(market) + as.factor(yrmnth), data=data))
+  
+  return(mod_data)
+  
+}
+
+
+##### BOOTSTRAPS #####
+
+## linear bootstrap
+bootstrap_data_lin <- function(data, mod, var, short=F, name="") {
+  
+  #check to see if we've run this before. If so just return it
+  bootfile <- paste0("boostraps/", buf, "_linear_", name, "_", var)
+  if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
+  
+  num <- ifelse(short, 100, 1000)
+  x = 0:700
+  yy = x*mod$coefficients[1] 
+  
+  coef <- matrix(nrow=num,ncol=2)  
+  ll = dim(data)[1]  #the number of observations we have in the original dataset: 6584
+  for (i in 1:num)  {
+    samp <- sample(1:ll,size=ll,replace=T)  
+    newdata = data[samp,]
+    #estimate our regression y = b1*T + b2*T^2
+    switch(var, 
+           "p_sow" = model <- felm(log(def_value) ~ p_sow | market + yrmnth, data=newdata),
+           "p_grow" = model <- felm(log(def_value) ~ p_grow | market + yrmnth, data=newdata),
+           "p_harv" = model <- felm(log(def_value) ~ p_harv | market + yrmnth, data=newdata),
+           "p_sup" = model <- felm(log(def_value) ~ p_sup | market + yrmnth, data=newdata),
+           "p_onemonth" = model <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=newdata))
+    #extract the coefficient estimates of b1 and b2 and store them in the matrix we made above
+    coef[i,] <- coef(model) 
+    print(i)  #print this out so you can watch progress :)
+  }
+  
+  #save it out for the next run if name was provided
+  returnlist <- list(coef, x, yy)
+  if(name != "") saveRDS(returnlist, bootfile)
+  
+  return(returnlist)
   
 }
 
@@ -242,54 +316,3 @@ bootstrap_data <- function(data, mod, var, short=F, name="") {
   return(returnlist)
   
 }
-
-## regress as linear
-linear_regression <- function(data, var) {
-  
-  switch(var, 
-         "p_sow" = mod_data <- felm(log(def_value) ~ p_sow | market + yrmnth, data=data),
-         "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
-         "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
-         "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
-         "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
-  
-  return(mod_data)
-  
-}
-
-## linear bootstrap
-bootstrap_data_lin <- function(data, mod, var, short=F, name="") {
-  
-  #check to see if we've run this before. If so just return it
-  bootfile <- paste0("boostraps/", buf, "_linear_", name, "_", var)
-  if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
-  
-  num <- ifelse(short, 100, 1000)
-  x = 0:700
-  yy = x*mod$coefficients[1] 
-  
-  coef <- matrix(nrow=num,ncol=2)  
-  ll = dim(data)[1]  #the number of observations we have in the original dataset: 6584
-  for (i in 1:num)  {
-    samp <- sample(1:ll,size=ll,replace=T)  
-    newdata = data[samp,]
-    #estimate our regression y = b1*T + b2*T^2
-    switch(var, 
-           "p_sow" = model <- felm(log(def_value) ~ p_sow | market + yrmnth, data=newdata),
-           "p_grow" = model <- felm(log(def_value) ~ p_grow | market + yrmnth, data=newdata),
-           "p_harv" = model <- felm(log(def_value) ~ p_harv | market + yrmnth, data=newdata),
-           "p_sup" = model <- felm(log(def_value) ~ p_sup | market + yrmnth, data=newdata),
-           "p_onemonth" = model <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=newdata))
-    #extract the coefficient estimates of b1 and b2 and store them in the matrix we made above
-    coef[i,] <- coef(model) 
-    print(i)  #print this out so you can watch progress :)
-  }
-  
-  #save it out for the next run if name was provided
-  returnlist <- list(coef, x, yy)
-  if(name != "") saveRDS(returnlist, bootfile)
-  
-  return(returnlist)
-  
-}
-

@@ -1,4 +1,5 @@
-source('~/Documents/Stanford/R - Spring 2019/New Regressions.R')
+source('~/Documents/Stanford/precip-price/format_price.R')
+source('~/Documents/Stanford/precip-price/Functions for Analysis.R')
 
 ## SORGHUM
 #lets get the sorghum we want specificially & merge in seasonality
@@ -20,7 +21,7 @@ mod_sorghum_sup <- quad_regression(sorghum, "p_sup")
 mod_sorghum_onem <- quad_regression(sorghum, "p_onemonth")
 
 #bootstrap all three and return information for plotting
-sorghum_sow_boot <- bootstrap_data(sorghum, mod_sorghum_sow, "p_sow")
+sorghum_sow_boot <- bootstrap_data_lin(sorghum, mod_sorghum_sow, "p_sow", short = T)
 sorghum_grow_boot <- bootstrap_data(sorghum, mod_sorghum_grow, "p_grow")
 sorghum_harv_boot <- bootstrap_data(sorghum, mod_sorghum_harv, "p_harv")
 sorghum_sup_boot <- bootstrap_data(sorghum, mod_sorghum_sup, "p_sup")
@@ -28,11 +29,11 @@ sorghum_onem_boot <- bootstrap_data(sorghum, mod_sorghum_onem, "p_onemonth", sho
 
 ## leaving this here just for personal testing.
 ##This isn't output anywhere permanantly. change at will
-x <- sorghum_onem_boot[[2]]
-yy <- sorghum_onem_boot[[3]]
-coef <- sorghum_onem_boot[[1]]
+x <- sorghum_grow_boot[[2]]
+yy <- sorghum_grow_boot[[3]]
+coef <- sorghum_grow_boot[[1]]
 
-plot(100,xlim=c(0,400),ylim=c(-.1,.5),las=1,xlab="precip",ylab="value")  
+plot(100,xlim=c(0,400),ylim=c(-.1,10),las=1,xlab="precip",ylab="value")  
 for (i in 1:100) {
   yy <- x*coef[i] + x^2*coef[i,2]  
   #yy <- yy - yy[x=80]
