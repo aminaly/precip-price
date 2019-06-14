@@ -196,7 +196,6 @@ calc_precip <- function(data) {
   
 }
 
-
 ##### REGRESSIONS #####
 
 ## regress as linear
@@ -256,7 +255,7 @@ bootstrap_data_lin <- function(data, mod, var, short=F, name="") {
   yy = x*mod$coefficients[1] 
   
   coef <- matrix(nrow=num,ncol=2)  
-  ll = dim(data)[1]  #the number of observations we have in the original dataset: 6584
+  ll = dim(data)[1]  #the number of observations we have in the original dataset
   for (i in 1:num)  {
     samp <- sample(1:ll,size=ll,replace=T)  
     newdata = data[samp,]
