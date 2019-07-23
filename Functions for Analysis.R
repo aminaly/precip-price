@@ -1,13 +1,8 @@
 setwd("/Users/amina/Documents/Stanford/precip-price")
 library(lfe)
 library(dplyr)
-
-#If you don't need to extract, just use this to get pp_data together
-buf <- 2
-
-rdsname <- paste0("precip/", buf, "_precip.rds")
-precip <- readRDS(rdsname)
-precipname <- paste0("precip/", buf, "_ppdata.csv")
+library(extRemes)
+library(lubridate)
 
 ##### Data Cleaning #####
 
@@ -41,16 +36,19 @@ filter_grain <- function(data, grain) {
     
     dta <- data[str_detect(data$product, "Sorghum"),]
     dta <- dta[!str_detect(dta$product, "Sorghum Flour"),]
+    dta$type <- "sorghum"
     
   } else if(grain == "Millet") {
     
     dta <- data[str_detect(data$product, "Millet"),]
+    dta$type <- "millet"
     
   } else if(grain == "Maize") {
     
     dta <- data[str_detect(data$product, "Maize"),]
     dta <- dta[!str_detect(dta$product, "Meal"),]
     dta <- dta %>% filter(country != "Zimbabwe")
+    dta$type <- "maize"
     
   }
   
@@ -60,9 +58,14 @@ filter_grain <- function(data, grain) {
 ##get the seasons and merge data
 merge_seasons <- function(data, grn) {
   
+  #get the growing season file and filter
   szn <- read.csv("downloaded/growing_seasons.csv")
   szn <- szn %>% filter(grain == grn)
+  
+  #update country-specific naming conventions
+  if(grn == "maize") data <- data %>% mutate(country = ifelse(location %in% c("Nigeria, Ibadan, Bodija", "Nigeria, Lagos, Mile 12", "Nigeria, Aba"), "Nigeria (S)", country))
   merged <- left_join(data, szn)
+  
   return(merged)
 }
 
@@ -96,7 +99,8 @@ filter_dates <- function(data, grn) {
 calc_precip <- function(data) {
   
   #check first to see if we've already calculated this.
-  calcname <- paste0("precip/calc_", buf, "_ppdata.rds")
+  grn <- data$type[1]
+  calcname <- paste0("precip/calc_", grn, "_", buf, "_ppdata.rds")
   if(file.exists(calcname)) return(readRDS(calcname))
   
   data$p_sow <- 0
@@ -198,29 +202,24 @@ calc_precip <- function(data) {
 
 ##### REGRESSIONS #####
 
-## regress as linear
-linear_regression <- function(data, var) {
+## regress as log-linear
+get_model_regression <- function(data, var, level) {
   
-  switch(var, 
-         "p_sow" = mod_data <- felm(log(def_value) ~ p_sow | market + yrmnth, data=data),
-         "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
-         "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
-         "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
-         "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
-  
-  return(mod_data)
-  
-}
-
-##regress as quadratic
-quad_regression <- function(data, var) {
-  
-  switch(var, 
-         "p_sow" = mod_data <- felm(log(def_value) ~ poly(p_sow,2,raw=T) | market + yrmnth, data=data),
-         "p_grow" = mod_data <- felm(log(def_value) ~ poly(p_grow,2,raw=T) | market + yrmnth, data=data),
-         "p_harv" = mod_data <- felm(log(def_value) ~ poly(p_harv,2,raw=T) | market + yrmnth, data=data),
-         "p_sup" = mod_data <- felm(log(def_value) ~ poly(p_sup,2,raw=T) | market + yrmnth, data=data),
-         "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,2,raw=T) | market + yrmnth, data=data))
+  if(level == 1) {
+    switch(var, 
+           "p_sow" = mod_data <- felm(log(def_value) ~ p_sow | market + yrmnth, data=data),
+           "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
+           "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
+           "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
+  } else {
+    switch(var, 
+           "p_sow" = mod_data <- felm(log(def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=data),
+           "p_grow" = mod_data <- felm(log(def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
+           "p_harv" = mod_data <- felm(log(def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
+           "p_sup" = mod_data <- felm(log(def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
+  }
   
   return(mod_data)
   
@@ -230,11 +229,11 @@ quad_regression <- function(data, var) {
 linear_regression_interaction <- function(data, var) {
   
   switch(var, 
-         "p_sow" = mod_data <- lm(log(def_value) ~ p_sow +  p_sow * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_grow" = mod_data <- lm(log(def_value) ~ p_grow +  p_grow * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_harv" = mod_data <- lm(log(def_value) ~ p_harv +  p_harv * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_sup" = mod_data <- lm(log(def_value) ~ p_sup +  p_sup * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_onemonth" = mod_data <- lm(log(def_value) ~ p_onemonth +  p_onemonth * country  + as.factor(market) + as.factor(yrmnth), data=data))
+         "p_sow" = mod_data <- lm((def_value) ~ p_sow +  p_sow * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_grow" = mod_data <- lm((def_value) ~ p_grow +  p_grow * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_harv" = mod_data <- lm((def_value) ~ p_harv +  p_harv * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_sup" = mod_data <- lm((def_value) ~ p_sup +  p_sup * country  + as.factor(market) + as.factor(yrmnth), data=data),
+         "p_onemonth" = mod_data <- lm((def_value) ~ p_onemonth +  p_onemonth * country  + as.factor(market) + as.factor(yrmnth), data=data))
   
   return(mod_data)
   
@@ -243,32 +242,53 @@ linear_regression_interaction <- function(data, var) {
 
 ##### BOOTSTRAPS #####
 
-## linear bootstrap
-bootstrap_data_lin <- function(data, mod, var, short=F, name="") {
+##bootstrap and graph
+#if you would like a saved out version, please include a name in the arguments
+#level stays blank if linear, given a value if poly
+bootstrap_data <- function(data, mod, var, short=F, name="", xrange=0, level=1) {
   
   #check to see if we've run this before. If so just return it
-  bootfile <- paste0("boostraps/", buf, "_linear_", name, "_", var)
+  bootfile <- paste0("boostraps/", buf, "_", name, "_", var)
   if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
   
   num <- ifelse(short, 100, 1000)
-  x = 0:700
+  x = ifelse(xarange == 0, 0:500, xrange)
   yy = x*mod$coefficients[1] 
   
-  coef <- matrix(nrow=num,ncol=2)  
-  ll = dim(data)[1]  #the number of observations we have in the original dataset
-  for (i in 1:num)  {
-    samp <- sample(1:ll,size=ll,replace=T)  
-    newdata = data[samp,]
-    #estimate our regression y = b1*T + b2*T^2
-    switch(var, 
-           "p_sow" = model <- felm(log(def_value) ~ p_sow | market + yrmnth, data=newdata),
-           "p_grow" = model <- felm(log(def_value) ~ p_grow | market + yrmnth, data=newdata),
-           "p_harv" = model <- felm(log(def_value) ~ p_harv | market + yrmnth, data=newdata),
-           "p_sup" = model <- felm(log(def_value) ~ p_sup | market + yrmnth, data=newdata),
-           "p_onemonth" = model <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=newdata))
-    #extract the coefficient estimates of b1 and b2 and store them in the matrix we made above
-    coef[i,] <- coef(model) 
-    print(i)  #print this out so you can watch progress :)
+  if(level == 1) {
+    coef <- matrix(nrow=num,ncol=1)  
+    ll = dim(data)[1]  #the number of observations we have in the original dataset
+    for (i in 1:num)  {
+      samp <- sample(1:ll,size=ll,replace=T)  
+      newdata = data[samp,]
+      #estimate our regression y = b1*T + b2*T^2
+      switch(var, 
+             "p_sow" = model <- felm((def_value) ~ p_sow | market + yrmnth, data=newdata),
+             "p_grow" = model <- felm((def_value) ~ p_grow | market + yrmnth, data=newdata),
+             "p_harv" = model <- felm((def_value) ~ p_harv | market + yrmnth, data=newdata),
+             "p_sup" = model <- felm((def_value) ~ p_sup | market + yrmnth, data=newdata),
+             "p_onemonth" = model <- felm((def_value) ~ p_onemonth | market + yrmnth, data=newdata))
+      #extract the coefficient estimates of b1 and b2 and store them in the matrix we made above
+      coef[i] <- coef(model) 
+      print(i)  #print this out so you can watch progress 
+    }
+  } else {
+    coef <- matrix(nrow=num,ncol=level)  
+    ll = dim(data)[1]  
+    for (i in 1:num)  {
+      samp <- sample(1:ll,size=ll,replace=T)  
+      newdata = data[samp,]
+      #estimate our regression 
+      switch(var, 
+             "p_sow" = model <- felm((def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=newdata),
+             "p_grow" = model <- felm((def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=newdata),
+             "p_harv" = model <- felm((def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=newdata), 
+             "p_sup" = model <- felm((def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=newdata),
+             "p_onemonth" = model <- felm((def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=newdata))
+      #extract the coefficient estimates of b1 and b2 and store them in the matrix we made above
+      coef[i,] <- coef(model) 
+      print(i)  #print this out so you can watch progress :)
+    }
   }
   
   #save it out for the next run if name was provided
@@ -279,39 +299,51 @@ bootstrap_data_lin <- function(data, mod, var, short=F, name="") {
   
 }
 
-##bootstrap and graph
-#if you would like a saved out version, please include a name in the arguments
-bootstrap_data <- function(data, mod, var, short=F, name="") {
+##### EXTREME VALUES #####
+
+##get extreme days
+#currently just getting the quantiles and picking everything at or above 95% percentile
+get_extreme_days <- function(data) {
   
-  #check to see if we've run this before. If so just return it
-  bootfile <- paste0("boostraps/", buf, "_quad_", name, "_", var)
-  if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
-  
-  num <- ifelse(short, 100, 1000)
-  x = 0:700
-  yy = x*mod$coefficients[1] 
-  
-  coef <- matrix(nrow=num,ncol=2)  
-  ll = dim(data)[1]  #the number of observations we have in the original dataset: 6584
-  for (i in 1:num)  {
-    samp <- sample(1:ll,size=ll,replace=T)  
-    newdata = data[samp,]
-    #estimate our regression y = b1*T + b2*T^2
-    switch(var, 
-           "p_sow" = model <- felm(log(def_value) ~ poly(p_sow,2,raw=T) | market + yrmnth, data=newdata),
-           "p_grow" = model <- felm(log(def_value) ~ poly(p_grow,2,raw=T) | market + yrmnth, data=newdata),
-           "p_harv" = model <- felm(log(def_value) ~ poly(p_harv,2,raw=T) | market + yrmnth, data=newdata), 
-           "p_sup" = model <- felm(log(def_value) ~ poly(p_sup,2,raw=T) | market + yrmnth, data=newdata),
-           "p_onemonth" = model <- felm(log(def_value) ~ poly(p_onemonth,2,raw=T) | market + yrmnth, data=newdata))
-    #extract the coefficient estimates of b1 and b2 and store them in the matrix we made above
-    coef[i,] <- coef(model) 
-    print(i)  #print this out so you can watch progress :)
-  }
-  
-  #save it out for the next run if name was provided
-  returnlist <- list(coef, x, yy)
-  if(name != "") saveRDS(returnlist, bootfile)
-  
-  return(returnlist)
+  cutoff <- quantile(data$avg_rainfall, probs=c(0.95))
+  return(data[data$avg_rainfall >= cutoff,])
   
 }
+
+## Make table of average price before and after each day
+
+#data should be unique to one commodity type please
+
+#type is how we want to pick values:
+##average is the mean of all prices in date range. 
+##single is the single closest value to the day difference
+
+calc_extreme <- function(data, mnts) {
+  
+  extreme_dates <- get_extreme_days(data)
+  to_return <- c()
+  
+  for(i in 1:nrow(extreme_dates)) {
+    
+    event_date <- extreme_dates$date[i]
+    early_date <- event_date %m-% months(mnts)
+    late_date <- event_date %m+% months(mnts) 
+    
+    dat <- data %>% filter(location == extreme_dates$location[i])
+    
+    pre_event <- dat %>% filter(date >= early_date) %>% filter(date <= event_date) %>% group_by(location, type) %>% summarise(rain_before = mean(avg_rainfall)) 
+    post_event <- dat %>% filter(date > event_date) %>% filter(date <= late_date) %>% group_by(location, type) %>% summarise(rain_after = mean(avg_rainfall))
+    
+    paired <- left_join(pre_event, post_event, by = c("location", "type"))
+    
+    to_return <- rbind(to_return, paired)
+    
+  }
+  
+  return(to_return)
+
+}
+
+
+
+

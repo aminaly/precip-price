@@ -7,11 +7,6 @@ library(lubridate)
 
 buf <- 2
 
-# read in africa shapefile (if you want to)
-#setwd("~/scratch/users/aminaly/winter_2019/")
-#africa <- read_sf("Africa_SHP/Africa.shp")
-#nigeria <- readRDS("nigeria.rds")
-
 #setwd("~/scratch/groups/omramom/CHRIPS_monthly/")
 ## NOTE if you want to run this you're going to have to move the chirps file into the right folder
 ## I don't want to carry this massive file around

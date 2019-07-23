@@ -1,4 +1,12 @@
+# Source files with functions useful/data prep
 source('~/Documents/Stanford/precip-price/format_price.R')
+
+#If you don't need to extract, just use this to get pp_data together. If you do, you'll need to run precip_extract
+buf <- 2
+rdsname <- paste0("precip/", buf, "_precip.rds")
+precip <- readRDS(rdsname)
+precipname <- paste0("precip/", buf, "_ppdata.csv")
+
 source('~/Documents/Stanford/precip-price/Functions for Analysis.R')
 
 ## SORGHUM
@@ -14,31 +22,22 @@ sorghum <- filter_dates(sorghum, "Sorghum")
 sorghum <- calc_precip(sorghum)
 
 # panel regression
-mod_sorghum_sow <- linear_regression(sorghum, "p_sow")
-mod_sorghum_grow <- quad_regression(sorghum, "p_grow")
-mod_sorghum_harv <- linear_regression(sorghum, "p_harv")
-mod_sorghum_sup <- quad_regression(sorghum, "p_sup")
-mod_sorghum_onem <- quad_regression(sorghum, "p_onemonth")
+mod_sorghum_sow <- get_model_regression(sorghum, "p_sow", 1)
+mod_sorghum_grow <- get_model_regression(sorghum, "p_grow", 2)
+mod_sorghum_harv <- get_model_regression(sorghum, "p_harv", 1)
+mod_sorghum_sup <- get_model_regression(sorghum, "p_sup", 1)
+mod_sorghum_onem <- get_model_regression(sorghum, "p_onemonth", 2)
 
 #bootstrap all three and return information for plotting
-sorghum_sow_boot <- bootstrap_data_lin(sorghum, mod_sorghum_sow, "p_sow", short = T)
-sorghum_grow_boot <- bootstrap_data(sorghum, mod_sorghum_grow, "p_grow")
-sorghum_harv_boot <- bootstrap_data(sorghum, mod_sorghum_harv, "p_harv")
-sorghum_sup_boot <- bootstrap_data(sorghum, mod_sorghum_sup, "p_sup")
-sorghum_onem_boot <- bootstrap_data(sorghum, mod_sorghum_onem, "p_onemonth", short = T)
+sorghum_sow_boot <- bootstrap_data(sorghum, mod_sorghum_sow, "p_sow", short = T)
+sorghum_grow_boot <- bootstrap_data(sorghum, mod_sorghum_grow, "p_grow", short = T, level = 2)
+sorghum_harv_boot <- bootstrap_data(sorghum, mod_sorghum_harv, "p_harv", short = T)
+sorghum_sup_boot <- bootstrap_data(sorghum, mod_sorghum_sup, "p_sup",  short = T)
+sorghum_onem_boot <- bootstrap_data(sorghum, mod_sorghum_onem, "p_onemonth", short = T, level = 2)
 
 ## leaving this here just for personal testing.
 ##This isn't output anywhere permanantly. change at will
-x <- sorghum_grow_boot[[2]]
-yy <- sorghum_grow_boot[[3]]
-coef <- sorghum_grow_boot[[1]]
 
-plot(100,xlim=c(0,400),ylim=c(-.1,10),las=1,xlab="precip",ylab="value")  
-for (i in 1:100) {
-  yy <- x*coef[i] + x^2*coef[i,2]  
-  #yy <- yy - yy[x=80]
-  lines(x,yy,lwd=0.5)
-}
 
 ## Millet
 #lets get the millet we want specificially & merge in seasonality
@@ -53,29 +52,18 @@ millet <- filter_dates(millet, "Millet")
 millet <- calc_precip(millet)
 
 # panel regression
-mod_millet_sow <- quad_regression(millet, "p_sow")
-mod_millet_grow <- quad_regression(millet, "p_grow")
-mod_millet_harv <- quad_regression(millet, "p_harv")
-mod_millet_sup <- quad_regression(millet, "p_sup")
-
+mod_millet_sow <- get_model_regression(millet, "p_sow", 2)
+mod_millet_grow <- get_model_regression(millet, "p_grow", 2)
+mod_millet_harv <- get_model_regression(millet, "p_harv", 1)
+mod_millet_sup <- get_model_regression(millet, "p_sup", 2)
+mod_millet_onem <- get_model_regression(millet, "p_onemonth", 2)
 
 #bootstrap all three and return information for plotting
-millet_sow_boot <- bootstrap_data(millet, mod_millet_sow, "p_sow")
-millet_grow_boot <- bootstrap_data(millet, mod_millet_grow, "p_grow")
-millet_harv_boot <- bootstrap_data_lin(millet, mod_millet_harv, "p_harv", short = T)
-millet_sup_boot <- bootstrap_data_lin(millet, mod_millet_harv, "p_sup", short = T)
-
-#plot 
-x <- millet_sup_boot[[2]]
-yy <- millet_sup_boot[[3]]
-coef <- millet_sup_boot[[1]]
-
-plot(50,xlim=c(0,1000),ylim=c(-.5,.5),las=1,xlab="precip",ylab="value")  
-for (i in 1:100) {
-  yy <- x*coef[i]# + x^2*coef[i,2]  
-  yy <- yy - yy[x=20]
-  lines(x,yy,lwd=0.5)
-}
+millet_sow_boot <- bootstrap_data(millet, mod_millet_sow, "p_sow", short = T, level = 2)
+millet_grow_boot <- bootstrap_data(millet, mod_millet_grow, "p_grow", short = T, level = 2)
+millet_harv_boot <- bootstrap_data(millet, mod_millet_harv, "p_harv", short = T)
+millet_sup_boot <- bootstrap_data(millet, mod_millet_sup, "p_sup", short = T, level = 2)
+millet_onem_boot <- bootstrap_data(millet, mod_millet_onem, "p_onemonth", short = T, level = 2)
 
 ## Maize
 #lets get the maize we want specificially & merge in seasonality
@@ -90,27 +78,16 @@ maize <- filter_dates(maize, "Maize")
 maize <- calc_precip(maize)
 
 # panel regression
-mod_maize_sow <- quad_regression(maize, "p_sow")
-mod_maize_grow <- linear_regression(maize, "p_grow")
-mod_maize_harv <- quad_regression(maize, "p_harv")
-mod_maize_sup <- linear_regression(maize, "p_sup")
+mod_maize_sow <- get_model_regression(maize, "p_sow", 1)
+mod_maize_grow <- get_model_regression(maize, "p_grow", 1)
+mod_maize_harv <- get_model_regression(maize, "p_harv", 2)
+mod_maize_sup <- get_model_regression(maize, "p_sup", 1)
+mod_maize_onem <- get_model_regression(maize, "p_onemonth", 2)
 
 #bootstrap all three and return information for plotting
-maize_sow_boot <- bootstrap_data(maize, mod_maize_sow, "p_sow")
-maize_grow_boot <- bootstrap_data_lin(maize, mod_maize_grow, "p_grow", short = T)
-maize_harv_boot <- bootstrap_data(maize, mod_maize_harv, "p_harv", short = T)
-maize_sup_boot <- bootstrap_data_lin(maize, mod_maize_sup, "p_sup", short = T)
-
-#plot 
-x <- maize_sup_boot[[2]]
-yy <- maize_sup_boot[[3]]
-coef <- maize_sup_boot[[1]]
-
-plot(50,xlim=c(0,700),ylim=c(-.5,.5),las=1,xlab="precip",ylab="value")  
-for (i in 1:100) {
-  yy <- x*coef[i]# + x^2*coef[i,2]  
-  yy <- yy - yy[x=20]
-  lines(x,yy,lwd=0.5)
-}
-
+maize_sow_boot <- bootstrap_data(maize, mod_maize_sow, "p_sow", short = T)
+maize_grow_boot <- bootstrap_data(maize, mod_maize_grow, "p_grow", short = T)
+maize_harv_boot <- bootstrap_data(maize, mod_maize_harv, "p_harv", short = T, level = 2)
+maize_sup_boot <- bootstrap_data(maize, mod_maize_sup, "p_sup", short = T)
+maize_onem_boot <- bootstrap_data(maize, mod_maize_onem, "p_onemonth", short = T, level = 2)
 

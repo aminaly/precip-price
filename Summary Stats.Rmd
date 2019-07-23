@@ -1,0 +1,34 @@
+---
+title: "Summary Stats"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source('~/Documents/Stanford/precip-price/format_price.R')
+```
+
+## Some general information about the price dataset
+
+```{r}
+
+# summary of price data
+sorghum <- filter_grain(price, "Sorghum")
+millet <- filter_grain(price, "Millet")
+maize <- filter_grain(price, "Maize")
+
+all <- rbind(maize, rbind(sorghum, millet))
+all$year <- format(all$period_date, na.rm=T, "%Y")
+
+write.table(all, "shared/filter_price.csv", row.names = FALSE, sep = ",", dec = ".")
+
+data_by_market <- all %>% group_by(country, type) %>% count(market)
+
+
+breakdown <- price %>% group_by(location, product) %>% summarize(avg_value = mean(def_value))
+
+## price per year
+price_per_year <- all %>% group_by(country, type, year) %>%
+  summarize(avg_value = mean(def_value, na.rm = T)) 
+```
+
