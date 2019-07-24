@@ -22,8 +22,7 @@ for(i in 1:3) {
   sorghum <- filter_dates(sorghum, "Sorghum")
   #calcualte precip for correct set of dates
   sorghum <- calc_precip(sorghum)
-  sorghum <- sorghum %>% filter(price_type == "Wholesale")
-  
+
   #lets get the millet we want specificially & merge in seasonality
   millet <- filter_grain(pp_data, "Millet")
   millet <- merge_seasons(millet, "millet")
@@ -31,8 +30,7 @@ for(i in 1:3) {
   millet <- filter_dates(millet, "Millet")
   #calcualte precip for correct set of dates
   millet <- calc_precip(millet)
-  millet <- millet %>% filter(price_type == "Wholesale")
-  
+
   #lets get the maize we want specificially & merge in seasonality
   maize <- filter_grain(pp_data, "Maize")
   maize <- merge_seasons(maize, "maize")
@@ -40,8 +38,7 @@ for(i in 1:3) {
   maize <- filter_dates(maize, "Maize")
   #calcualte precip for correct set of dates
   maize <- calc_precip(maize)
-  maize <- maize %>% filter(price_type == "Wholesale")
-  
+
   ##### REGRESSIONS #####
   
   ## regress data with fixed effects
@@ -231,41 +228,3 @@ for(i in 1:3) {
 
 
 
-
-
-
-
-
-
-
-
-final[,3:5] <- lapply(final[,3:5], as.character)
-final[,3:5] <- lapply(final[,3:5], as.numeric)
-difs <- cbind(final[,1:2], rep(buf, nrow(final)), na.omit(final[,3]/final[,4]), na.omit(final[,4]/final[,5]))
-
-#estimates
-lin_estimates <- c()
-quad_estimates <- c()
-cube_estimates <- c()
-for(com in commods) {
-  for(t in types) {
-    
-    #run regressions
-    linear <- summary(regress_felm(com, t, 1))$coefficients
-    quad <- summary(regress_felm(com, t, 2))$coefficients
-    third <- summary(regress_felm(com, t, 3))$coefficients
-    
-    gr <- as.character(com$type[1])
-    
-    lin_estimates <- rbind(lin_estimates, cbind(gr, linear))
-    quad_estimates <- rbind(quad_estimates, cbind(rep(gr, 2), quad))
-    cube_estimates <- rbind(cube_estimates, cbind(rep(gr, 3), third))
-  }
-}
-
-# panel regression
-mod_sorghum_sow <- linear_regression_fe(sorghum, "p_sow")
-mod_sorghum_grow <- quad_regression(sorghum, "p_grow")
-mod_sorghum_harv <- linear_regression(sorghum, "p_harv")
-mod_sorghum_sup <- linear_regression(sorghum, "p_sup")
-mod_sorghum_onem <- quad_regression(sorghum, "p_onemonth")
