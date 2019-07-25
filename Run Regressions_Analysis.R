@@ -1,6 +1,5 @@
-# Source files with functions useful/data prep
-source('~/Documents/Stanford/precip-price/format_price.R')
-
+# Let's get hte price data
+price <- readRDS("saved-output/formatted-price.rds")
 #If you don't need to extract, just use this to get pp_data together. If you do, you'll need to run precip_extract
 buf <- 2
 rdsname <- paste0("precip/", buf, "_precip.rds")

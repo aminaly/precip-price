@@ -56,3 +56,6 @@ price$def_value <- price$value / (price$deflation_calc / 100)
 price$period_date <- as.Date(price$period_date, format = "%Y-%m-%d")
 price$month <- format(price$period_date, "%m")
 price <- price %>% mutate(def_value = ifelse(unit == "100_kg", def_value/100, def_value))
+
+# save out the price
+saveRDS(price, "formatted-price.rds")
