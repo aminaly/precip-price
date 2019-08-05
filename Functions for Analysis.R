@@ -96,12 +96,17 @@ filter_dates <- function(data, grn) {
 }
 
 ##calculate precip
-calc_precip <- function(data) {
+#daily = True means you get daily average values rather than total accumulated precip
+calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
   
   #check first to see if we've already calculated this.
   grn <- data$type[1]
-  calcname <- paste0("precip/calc_", grn, "_", buf, "_ppdata.rds")
+  calcname <- ifelse(daily,paste0("precip/calc_", grn, "_", buf, "daily_ppdata.rds"), paste0("precip/calc_", grn, "_", buf, "_ppdata.rds"))
+  calcname <- ifelse(zeros, calcname, paste0(str_sub(calcname, end = -4), "_no_zeros.rds"))
   if(file.exists(calcname)) return(readRDS(calcname))
+  
+  #if we are removing zeros, let's get it out of the data now. It's really anything less than 1mm
+  if(!zeros) data <- data %>% filter(avg_rainfall >= 1)
   
   data$p_sow <- 0
   data$p_grow <- 0
@@ -127,7 +132,7 @@ calc_precip <- function(data) {
       filter(date <= late_date) %>%
       group_by(country, location, product, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
-    rain <- sum(rain_dates$avg_rainfall)
+    rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
     data$p_sow[i] <- rain
     
@@ -142,7 +147,7 @@ calc_precip <- function(data) {
       filter(date <= late_date) %>%
       group_by(country, location, product, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
-    rain <- sum(rain_dates$avg_rainfall)
+    rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
     data$p_grow[i] <- rain
     
@@ -157,7 +162,7 @@ calc_precip <- function(data) {
       filter(date <= late_date) %>%
       group_by(country, location, product, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
-    rain <- sum(rain_dates$avg_rainfall)
+    rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
     data$p_harv[i] <- rain
     
@@ -172,7 +177,7 @@ calc_precip <- function(data) {
       filter(date < late_date) %>%
       group_by(country, location, product, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
-    rain <- sum(rain_dates$avg_rainfall)
+    rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
     data$p_sup[i] <- rain
     
@@ -187,7 +192,7 @@ calc_precip <- function(data) {
       filter(date < late_date) %>%
       group_by(country, location, product, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
-    rain <- sum(rain_dates$avg_rainfall)
+    rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
     data$p_onemonth[i] <- rain
   }
@@ -197,6 +202,22 @@ calc_precip <- function(data) {
   
   saveRDS(data, calcname)
   return(data)
+  
+}
+
+## Remove crazy outliers 
+#This is entirely manual. Right now there are a couple entries that are so much higher than the 
+# rest of the data that we're going to remove them but tbd if they're realistic 
+remove_outliers <- function(data) {
+  
+  data$outlier <- FALSE
+  
+  type <- data$type[1]
+  switch(type, 
+         "sorghum" = data <- data %>% mutate(outlier = ifelse((country == "Mauritania" && value < 200), TRUE, FALSE))
+  )
+  
+  return(data %>% filter(outlier == FALSE))
   
 }
 

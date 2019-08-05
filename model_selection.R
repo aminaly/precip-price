@@ -1,7 +1,7 @@
 ### Running some basic code to decide on ideal model for each commodity
 
 # Source files with functions useful/data prep
-source('~/Documents/Stanford/precip-price/format_price.R')
+price <- readRDS("saved-output/formatted-price.rds")
 all_final <- c()
 bufs <- c(.25,1,2)
 #If you don't need to extract, just use this to get pp_data together. If you do, you'll need to run precip_extract
@@ -21,7 +21,7 @@ for(i in 1:3) {
   #get locations with the right set of dates
   sorghum <- filter_dates(sorghum, "Sorghum")
   #calcualte precip for correct set of dates
-  sorghum <- calc_precip(sorghum)
+  sorghum <- calc_precip(sorghum, daily = TRUE, zeros = FALSE)
 
   #lets get the millet we want specificially & merge in seasonality
   millet <- filter_grain(pp_data, "Millet")
@@ -29,7 +29,7 @@ for(i in 1:3) {
   #get locations with the right set of dates
   millet <- filter_dates(millet, "Millet")
   #calcualte precip for correct set of dates
-  millet <- calc_precip(millet)
+  millet <- calc_precip(millet, daily = TRUE, zeros = FALSE)
 
   #lets get the maize we want specificially & merge in seasonality
   maize <- filter_grain(pp_data, "Maize")
@@ -37,7 +37,7 @@ for(i in 1:3) {
   #get locations with the right set of dates
   maize <- filter_dates(maize, "Maize")
   #calcualte precip for correct set of dates
-  maize <- calc_precip(maize)
+  maize <- calc_precip(maize, daily = TRUE, zeros = FALSE)
 
   ##### REGRESSIONS #####
   

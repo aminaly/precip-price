@@ -8,7 +8,7 @@ library(stringr)
 library(lucr)
 library(reshape2)
 
-prc <- read.csv("downloaded/PriceData.csv")
+prc <- read.csv("downloaded/pricedata_nooutliers.csv")
 loc <- read.csv("downloaded/locations.csv")
 
 ## Clean up price data to get it in the format you'd like and join with locations
@@ -58,4 +58,4 @@ price$month <- format(price$period_date, "%m")
 price <- price %>% mutate(def_value = ifelse(unit == "100_kg", def_value/100, def_value))
 
 # save out the price
-saveRDS(price, "formatted-price.rds")
+saveRDS(price, "saved-output/formatted-price.rds")
