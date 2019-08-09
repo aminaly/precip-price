@@ -3,6 +3,7 @@ library(lfe)
 library(dplyr)
 library(extRemes)
 library(lubridate)
+library(stringr)
 
 ##### Data Cleaning #####
 
@@ -75,8 +76,8 @@ merge_seasons <- function(data, grn) {
 filter_dates <- function(data, grn) {
   
   breakdown <- data %>% group_by(location, product) %>% 
-    summarize(minyear = as.Date(format(min(period_date, na.rm = T), "%m/%d/%Y"), "%m/%d/%Y"),
-              maxyear = as.Date(format(max(period_date, na.rm = T), "%m/%d/%Y"), "%m/%d/%Y"))
+    summarize(minyear = as.Date(format(min(date, na.rm = T), "%m/%d/%Y"), "%m/%d/%Y"),
+              maxyear = as.Date(format(max(date, na.rm = T), "%m/%d/%Y"), "%m/%d/%Y"))
   
   #note that these dates were chosen by checking for maximum overlap in data. Earliest date is 1 year before 
   #the intended time period for use in precip calculation. It is removed after precip calcs are done
@@ -84,13 +85,10 @@ filter_dates <- function(data, grn) {
                   "Maize" = c(as.Date("05/02/2011", "%m/%d/%Y"), as.Date("12/27/2017", "%m/%d/%Y")),
                   "Millet" = c(as.Date("02/01/2010", "%m/%d/%Y"), as.Date("08/30/2018", "%m/%d/%Y")))
   
-  data_markets <- breakdown %>% 
-    filter(minyear >= dates[1]) %>% 
-    filter(maxyear <= dates[2])
+  data <- data %>% filter(date >= dates[1]) %>% filter(date <= dates[2])
   
-  data <- data %>% filter(period_date >= dates[1]) %>% 
-    filter(period_date <= as.Date("01/01/2018", "%m/%d/%Y")) %>%
-    filter(location %in% data_markets$location)
+  #data_markets <- breakdown %>% filter(minyear <= dates[1]) %>% filter(maxyear >= dates[2])
+  #data <- data %>% filter(location %in% data_markets$location) %>% filter(date >= dates[1]) %>% filter(date <= dates[2]) 
   
   return(data)
 }
@@ -202,22 +200,6 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
   
   saveRDS(data, calcname)
   return(data)
-  
-}
-
-## Remove crazy outliers 
-#This is entirely manual. Right now there are a couple entries that are so much higher than the 
-# rest of the data that we're going to remove them but tbd if they're realistic 
-remove_outliers <- function(data) {
-  
-  data$outlier <- FALSE
-  
-  type <- data$type[1]
-  switch(type, 
-         "sorghum" = data <- data %>% mutate(outlier = ifelse((country == "Mauritania" && value < 200), TRUE, FALSE))
-  )
-  
-  return(data %>% filter(outlier == FALSE))
   
 }
 
@@ -343,12 +325,19 @@ bootstrap_data <- function(data, mod, var, short=F, name="", xrange=0, level, lo
 ##### EXTREME VALUES #####
 
 ##get extreme days
-#currently just getting the quantiles and picking everything at or above 95% percentile
+#currently just getting the quantiles and picking everything at or above 95% percentile BY LOCATION
 get_extreme_days <- function(data) {
   
-  cutoff <- quantile(data$avg_rainfall, probs=c(0.95))
-  return(data[data$avg_rainfall >= cutoff,])
+  to_return <- c()
   
+  for(loc in unique(data$location)) {
+    
+    subset <- data %>% filter(location == loc)
+    cutoff <- quantile(data$avg_rainfall, probs=c(0.95))
+    to_return <- rbind(to_return, subset %>% filter(avg_rainfall > cutoff))
+  }
+  
+  return(to_return)
 }
 
 ## Make table of average price before and after each day

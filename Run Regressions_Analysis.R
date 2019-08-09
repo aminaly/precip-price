@@ -4,7 +4,6 @@ price <- readRDS("saved-output/formatted-price.rds")
 buf <- 2
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
-precipname <- paste0("precip/", buf, "_ppdata.csv")
 
 source('~/Documents/Stanford/precip-price/Functions for Analysis.R')
 

@@ -1,0 +1,8 @@
+Includes: 
+
+rds files of extracted precipitation data. 
+Naming convention: [buffer size]_precip.rds
+
+rds files of accumulated precipitation calculations depending on dates. 
+Naming convention: calc_[buffer size]_ppdata.rds
+
