@@ -197,14 +197,14 @@ maize <- calc_precip(maize, daily = run_daily, zeros = include_zeros)
 
 
 ## mins and maxs
-ymaxs <- c(5, 1, 8, 2, .2)
-ymins <- c(-.5, -1, -8, -2, -.5)
+ymaxs <- c(1, .5, 1, 1, .2)
+ymins <- c(-1, -.5, -1, -1, -.2)
 ys <- cbind(rep("sorghum", 5), ymaxs, ymins)
-ymaxs <- c(1, 3, 50, 3, 1)
-ymins <- c(-1, -3, -50, -10, -1)
+ymaxs <- c(.5, .5, 1, 3, .5)
+ymins <- c(-.5, -.5, -1, -12, -.5)
 ys <- rbind(ys, cbind(rep("millet", 5), ymaxs, ymins))
-ymaxs <- c(1, 2, 50, .2, .2)
-ymins <- c(-1, -1, -100, -1, -.5)
+ymaxs <- c(.5, 1, 1, .2, .2)
+ymins <- c(-.5, -.5, -1, -.2, -.2)
 ys <- rbind(ys, cbind(rep("maize", 5), ymaxs, ymins))
 
 
@@ -213,7 +213,8 @@ comps <- read.csv("model-comps/Model_Comps_Master.csv", stringsAsFactors = F)
 types <- c("p_sow", "p_grow", "p_harv", "p_sup", "p_onemonth")
 
 #lib: 4 = standard, 5 = retail only, 6 = Daily Average, 7 = Daily Average No Days below 1mm
-type <- 7
+# 8 = New dates (more points) Daily Average No Days below 1mm
+type <- 8
 
 comps_plot <- comps %>% filter(Buffer == buf)
 
