@@ -1,14 +1,18 @@
+setwd("/Users/amina/Documents/Stanford/precip-price")
+price <- readRDS("saved-output/formatted-price.rds")
+
 ## Script to run to do a bunch of calculations 
 bufs <- c(.25, 1, 2)
 
 for(i in bufs) {
   
-  buf <- bufs[i]
+  buf <- i
   
   #daily without zeros
   rdsname <- paste0("precip/", buf, "_precip.rds")
   precip <- readRDS(rdsname)
   precipname <- paste0("precip/", buf, "_ppdata.csv")
+  source('~/Documents/Stanford/precip-price/Functions for Analysis.R')
   run_daily <- TRUE
   include_zeros <- FALSE
   
