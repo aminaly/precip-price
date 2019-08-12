@@ -167,7 +167,7 @@ buf <- 1
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
 precipname <- paste0("precip/", buf, "_ppdata.csv")
-run_daily <- FALSE
+run_daily <- TRUE
 include_zeros <- FALSE
 
 ## Get data for each commodity
