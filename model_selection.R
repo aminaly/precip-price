@@ -1,9 +1,15 @@
 ### Running some basic code to decide on ideal model for each commodity
 
 # Source files with functions useful/data prep
+setwd("/Users/amina/Documents/Stanford/precip-price")
 price <- readRDS("saved-output/formatted-price.rds")
 all_final <- c()
 bufs <- c(.25,1,2)
+
+# Arguments to change depending on what you want to run
+run_daily <- TRUE
+include_zeros <- FALSE
+
 #If you don't need to extract, just use this to get pp_data together. If you do, you'll need to run precip_extract
 for(i in 1:3) {
   
@@ -21,7 +27,7 @@ for(i in 1:3) {
   #get locations with the right set of dates
   sorghum <- filter_dates(sorghum, "Sorghum")
   #calcualte precip for correct set of dates
-  sorghum <- calc_precip(sorghum, daily = TRUE, zeros = FALSE)
+  sorghum <- calc_precip(sorghum, daily = run_daily, zeros = include_zeros)
 
   #lets get the millet we want specificially & merge in seasonality
   millet <- filter_grain(pp_data, "Millet")
@@ -29,7 +35,7 @@ for(i in 1:3) {
   #get locations with the right set of dates
   millet <- filter_dates(millet, "Millet")
   #calcualte precip for correct set of dates
-  millet <- calc_precip(millet, daily = TRUE, zeros = FALSE)
+  millet <- calc_precip(millet, daily = run_daily, zeros = include_zeros)
 
   #lets get the maize we want specificially & merge in seasonality
   maize <- filter_grain(pp_data, "Maize")
@@ -37,7 +43,7 @@ for(i in 1:3) {
   #get locations with the right set of dates
   maize <- filter_dates(maize, "Maize")
   #calcualte precip for correct set of dates
-  maize <- calc_precip(maize, daily = TRUE, zeros = FALSE)
+  maize <- calc_precip(maize, daily = run_daily, zeros = include_zeros)
 
   ##### REGRESSIONS #####
   
@@ -174,10 +180,10 @@ for(i in 1:3) {
     for(t in types) {
       
       #run the three regressions
-      linear <- regress(com, t, 1)
-      quad <- regress(com, t, 2)
-      third <- regress(com, t, 3)
-      log <- regress(com, t, "log")
+      #linear <- regress(com, t, 1)
+      #quad <- regress(com, t, 2)
+      #third <- regress(com, t, 3)
+      #log <- regress(com, t, "log")
       
       #run logs
       llinear <- l_regress(com, t, 1)
@@ -187,10 +193,10 @@ for(i in 1:3) {
       
       #pvals? 
       #run the three regressions
-      flinear <- regress_felm(com, t, 1)
-      fquad <- regress_felm(com, t, 2)
-      fthird <- regress_felm(com, t, 3)
-      flog <- regress_felm(com, t, "log")
+      #flinear <- regress_felm(com, t, 1)
+      #fquad <- regress_felm(com, t, 2)
+      #fthird <- regress_felm(com, t, 3)
+      #flog <- regress_felm(com, t, "log")
       
       #run logs
       fllinear <- l_regress_felm(com, t, 1)
@@ -198,25 +204,24 @@ for(i in 1:3) {
       flthird <- l_regress_felm(com, t, 3)
       fllog <- l_regress_felm(com, t, "log")
       
-      p_linear <- all(summary(flinear)$coefficients[,4] < 0.05)
-      p_quad <- all(summary(fquad)$coefficients[,4] < 0.05)
-      p_third <- all(summary(fthird)$coefficients[,4] < 0.05)
-      p_log <- all(summary(flog)$coefficients[,4] < 0.05)
+      #p_linear <- all(summary(flinear)$coefficients[,4] < 0.05)
+      #p_quad <- all(summary(fquad)$coefficients[,4] < 0.05)
+      #p_third <- all(summary(fthird)$coefficients[,4] < 0.05)
+      #p_log <- all(summary(flog)$coefficients[,4] < 0.05)
       p_llinear <- all(summary(fllinear)$coefficients[,4] < 0.05)
       p_lquad <- all(summary(flquad)$coefficients[,4] < 0.05)
       p_lthird <- all(summary(flthird)$coefficients[,4] < 0.05)
       p_llog <- all(summary(fllog)$coefficients[,4] < 0.05)
       
       gr <- as.character(com$type[1])
-      outcomes <- cbind(gr, t, AIC(linear), p_linear, AIC(quad), p_quad, AIC(third), p_third, AIC(log), p_log,
-                        AIC(llinear), p_llinear, AIC(lquad), p_lquad, AIC(lthird), p_lthird, AIC(llog), p_llog)
+      outcomes <- cbind(gr, t, AIC(llinear), p_llinear, AIC(lquad), p_lquad, AIC(lthird), p_lthird, AIC(llog), p_llog)
       final <- rbind(final, outcomes)
       
     }
   }
   
-  colnames(final) <- c("Grain", "Time Period", "Linear_AIC", "Linear_Pvals", "2_AIC", "2_Pvals", "3_AIC", "3_Pvals", "Log_AIC", "Log_Pvals",
-                       "Log_Linear_AIC", "Log_Linear_Pvals", "Log_2_AIC", "Log_2_Pvals", "Log_3_AIC", "Log_3_Pvals", "Log_Log_AIC", "Log_Log_Pvals")
+  colnames(final) <- c("Grain", "Time Period", "Log_Linear_AIC", "Log_Linear_Pvals", "Log_2_AIC", "Log_2_Pvals",
+                       "Log_3_AIC", "Log_3_Pvals", "Log_Log_AIC", "Log_Log_Pvals")
   final <- as.data.frame(final)
   final <- cbind(final, rep(buf, nrow(final)))
   all_final <- rbind(all_final, final)
