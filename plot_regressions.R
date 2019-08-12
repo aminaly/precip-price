@@ -167,7 +167,7 @@ buf <- 1
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
 precipname <- paste0("precip/", buf, "_ppdata.csv")
-run_daily <- TRUE
+run_daily <- FALSE
 include_zeros <- FALSE
 
 ## Get data for each commodity
@@ -197,14 +197,14 @@ maize <- calc_precip(maize, daily = run_daily, zeros = include_zeros)
 
 
 ## mins and maxs
-ymaxs <- c(1, .5, 1, 1, .2)
+ymaxs <- c(1, .5, 1.2, 1, .2)
 ymins <- c(-1, -.5, -1, -1, -.2)
 ys <- cbind(rep("sorghum", 5), ymaxs, ymins)
 ymaxs <- c(.5, .5, 1, 3, .5)
 ymins <- c(-.5, -.5, -1, -12, -.5)
 ys <- rbind(ys, cbind(rep("millet", 5), ymaxs, ymins))
 ymaxs <- c(.5, 1, 1, .2, .2)
-ymins <- c(-.5, -.5, -1, -.2, -.2)
+ymins <- c(-1, -.5, -1, -.2, -.2)
 ys <- rbind(ys, cbind(rep("maize", 5), ymaxs, ymins))
 
 
@@ -222,7 +222,7 @@ for(i in 1:nrow(comps_plot)) {
   
   #select the current row, and make sure it's usable
   row <- comps_plot[i,]
-  title <- paste(row$Grain, row$time_period, row[type], "buf=", buf, "> 0")
+  title <- paste(row$Grain, row$time_period, row[type], "buf=", buf, ", > 0, averages")
   
   #If this is the first of a new section, plot just simple title before continuing
   if((i %% 5) == 1) {
@@ -258,30 +258,32 @@ for(i in 1:nrow(comps_plot)) {
   yy <- boots[[3]]
   coef <- boots[[1]]
   
+  bts <- matrix(nrow=100,ncol=length(x))
   if(level == 2) {
-    plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
     for (j in 1:100) {
       yy <- x*coef[j,1] + x^2*coef[j,2]  
       yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
+      bts[j,] <- yy 
     }
     
   } else if (level == 3) {
-    plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
     for (j in 1:100) {
       yy <- x*coef[j,1] + x^2*coef[j,2] + x^3*coef[j,3] 
       yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
+      bts[j,] <- yy
     }
   } else {
-    plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
-    for (i in 1:100) {
+    for (j in 1:100) {
       yy <- x*coef[j]
       yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
+      bts[j,] <- yy
     }
   }
   
+  confint <- apply(bts,2,function(x) quantile(x,probs=c(0.05,0.5,0.95))) 
+  plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
+  polygon(c(x,rev(x)),c(confint[1,],rev(confint[3,])),col="darkolivegreen3",border = NA)
+  lines(x,confint[2,])  #median estimate across bootstraps
   
 }
 
