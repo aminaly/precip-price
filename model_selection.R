@@ -222,7 +222,7 @@ for(i in 1:3) {
   all_final <- rbind(all_final, final)
 }
 
-
+write.csv(all_final, "model_selection_output.csv")
 
 
 
