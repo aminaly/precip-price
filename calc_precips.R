@@ -1,4 +1,6 @@
-setwd("/Users/amina/Documents/Stanford/precip-price")
+ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
+	setwd("/Users/amina/Documents/Stanford/precip-price"),
+	setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price"))
 price <- readRDS("saved-output/formatted-price.rds")
 
 ## Script to run to do a bunch of calculations 
@@ -12,7 +14,7 @@ for(i in bufs) {
   rdsname <- paste0("precip/", buf, "_precip.rds")
   precip <- readRDS(rdsname)
   precipname <- paste0("precip/", buf, "_ppdata.csv")
-  source('~/Documents/Stanford/precip-price/Functions for Analysis.R')
+  source('~/Functions for Analysis.R')
   run_daily <- TRUE
   include_zeros <- FALSE
   
