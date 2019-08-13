@@ -1,4 +1,6 @@
-setwd("/Users/amina/Documents/Stanford/precip-price")
+ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price"))
 library(lfe)
 library(dplyr)
 library(extRemes)
