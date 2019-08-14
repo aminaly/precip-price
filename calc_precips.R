@@ -14,7 +14,7 @@ for(i in bufs) {
   rdsname <- paste0("precip/", buf, "_precip.rds")
   precip <- readRDS(rdsname)
   precipname <- paste0("precip/", buf, "_ppdata.csv")
-  source('~/Functions for Analysis.R')
+  source(paste0(getwd(), "/functions_for_analysis.R"))
   run_daily <- TRUE
   include_zeros <- FALSE
   
