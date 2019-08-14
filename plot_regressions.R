@@ -168,7 +168,7 @@ rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
 precipname <- paste0("precip/", buf, "_ppdata.csv")
 run_daily <- TRUE
-include_zeros <- FALSE
+include_zeros <- TRUE
 
 ## Get data for each commodity
 #lets get the sorghum we want specificially & merge in seasonality
