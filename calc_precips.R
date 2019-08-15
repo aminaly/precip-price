@@ -102,7 +102,7 @@ for(i in bufs) {
   maize <- calc_precip(maize, daily = run_daily, zeros = include_zeros)
   
   #accumulated with zeros
-  run_daily <- TRUE
+  run_daily <- FALSE
   include_zeros <- TRUE
   
   ## Get data for each commodity

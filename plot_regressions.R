@@ -167,7 +167,7 @@ buf <- 1
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
 precipname <- paste0("precip/", buf, "_ppdata.csv")
-run_daily <- TRUE
+run_daily <- FALSE
 include_zeros <- TRUE
 
 ## Get data for each commodity
@@ -213,7 +213,7 @@ comps <- read.csv("model-comps/Model_Comps_Master.csv", stringsAsFactors = F)
 types <- c("p_sow", "p_grow", "p_harv", "p_sup", "p_onemonth")
 
 #lib: 4 = standard, 5 = retail only, 6 = Daily Average, 7 = Daily Average No Days below 1mm
-# 8 = New dates (more points) Daily Average No Days below 1mm
+# 8 = Avg, > 0
 type <- 8
 
 comps_plot <- comps %>% filter(Buffer == buf)
@@ -222,7 +222,7 @@ for(i in 1:nrow(comps_plot)) {
   
   #select the current row, and make sure it's usable
   row <- comps_plot[i,]
-  title <- paste(row$Grain, row$time_period, row[type], "buf=", buf, ", > 0, averages")
+  title <- paste(row$Grain, row$time_period, row[type], "buf=", buf, ">0")
   
   #If this is the first of a new section, plot just simple title before continuing
   if((i %% 5) == 1) {
