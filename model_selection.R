@@ -7,8 +7,9 @@ all_final <- c()
 bufs <- c(.25,1,2)
 
 # Arguments to change depending on what you want to run
-run_daily <- TRUE
-include_zeros <- FALSE
+run_daily <- FALSE
+include_zeros <- TRUE
+file_name <- "model_selection_accumulated_zeros.csv"
 
 #If you don't need to extract, just use this to get pp_data together. If you do, you'll need to run precip_extract
 for(i in 1:3) {
@@ -18,7 +19,7 @@ for(i in 1:3) {
   precip <- readRDS(rdsname)
   precipname <- paste0("precip/", buf, "_ppdata.csv")
   
-  source('~/Documents/Stanford/precip-price/Functions for Analysis.R')
+  source('~/Documents/Stanford/precip-price/functions_for_analysis.R')
   
   ## Get data for each commodity
   #lets get the sorghum we want specificially & merge in seasonality
@@ -47,67 +48,67 @@ for(i in 1:3) {
 
   ##### REGRESSIONS #####
   
-  ## regress data with fixed effects
-  regress <- function(data, var, level) {
-    
-    if(level == 1) {
-      switch(var, 
-             "p_sow" = mod_data <- lm((def_value) ~ p_sow + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_grow" = mod_data <- lm((def_value) ~ p_grow + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_harv" = mod_data <- lm((def_value) ~ p_harv + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_sup" = mod_data <- lm((def_value) ~ p_sup + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_onemonth" = mod_data <- lm((def_value) ~ p_onemonth + as.factor(market) + as.factor(yrmnth), data=data))
-      
-    } else if(level == "log") {
-      switch(var, 
-             "p_sow" = mod_data <- lm((def_value) ~ log(p_sow) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_grow" = mod_data <- lm((def_value) ~ log(p_grow) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_harv" = mod_data <- lm((def_value) ~ log(p_harv) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_sup" = mod_data <- lm((def_value) ~ log(p_sup) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_onemonth" = mod_data <- lm((def_value) ~ log(p_onemonth) + as.factor(market) + as.factor(yrmnth), data=data))
-    } else {
-      switch(var, 
-             "p_sow" = mod_data <- lm((def_value) ~ poly(p_sow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_grow" = mod_data <- lm((def_value) ~ poly(p_grow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_harv" = mod_data <- lm((def_value) ~ poly(p_harv,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_sup" = mod_data <- lm((def_value) ~ poly(p_sup,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
-             "p_onemonth" = mod_data <- lm((def_value) ~ poly(p_onemonth,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data))
-    }
-    
-    return(mod_data)
-    
-  }
-  
-  ## regress using felm
-  regress_felm <- function(data, var, level) {
-    
-    if(level == 1) {
-      switch(var, 
-             "p_sow" = mod_data <- felm((def_value) ~ p_sow | market + yrmnth, data=data),
-             "p_grow" = mod_data <- felm((def_value) ~ p_grow | market + yrmnth, data=data),
-             "p_harv" = mod_data <- felm((def_value) ~ p_harv | market + yrmnth, data=data),
-             "p_sup" = mod_data <- felm((def_value) ~ p_sup | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm((def_value) ~ p_onemonth | market + yrmnth, data=data))
-      
-    } else if(level == "log") {
-      switch(var, 
-             "p_sow" = mod_data <- felm((def_value) ~ log(p_sow) | market + yrmnth, data=data),
-             "p_grow" = mod_data <- felm((def_value) ~ log(p_grow) | market + yrmnth, data=data),
-             "p_harv" = mod_data <- felm((def_value) ~ log(p_harv) | market + yrmnth, data=data),
-             "p_sup" = mod_data <- felm((def_value) ~ log(p_sup) | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm((def_value) ~ log(p_onemonth) | market + yrmnth, data=data))
-    } else {
-      switch(var, 
-             "p_sow" = mod_data <- felm((def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=data),
-             "p_grow" = mod_data <- felm((def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
-             "p_harv" = mod_data <- felm((def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
-             "p_sup" = mod_data <- felm((def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm((def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
-    }
-    
-    return(mod_data)
-    
-  }
+  # ## regress data with fixed effects
+  # regress <- function(data, var, level) {
+  #   
+  #   if(level == 1) {
+  #     switch(var, 
+  #            "p_sow" = mod_data <- lm((def_value) ~ p_sow + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_grow" = mod_data <- lm((def_value) ~ p_grow + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_harv" = mod_data <- lm((def_value) ~ p_harv + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_sup" = mod_data <- lm((def_value) ~ p_sup + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_onemonth" = mod_data <- lm((def_value) ~ p_onemonth + as.factor(market) + as.factor(yrmnth), data=data))
+  #     
+  #   } else if(level == "log") {
+  #     switch(var, 
+  #            "p_sow" = mod_data <- lm((def_value) ~ log(p_sow) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_grow" = mod_data <- lm((def_value) ~ log(p_grow) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_harv" = mod_data <- lm((def_value) ~ log(p_harv) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_sup" = mod_data <- lm((def_value) ~ log(p_sup) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_onemonth" = mod_data <- lm((def_value) ~ log(p_onemonth) + as.factor(market) + as.factor(yrmnth), data=data))
+  #   } else {
+  #     switch(var, 
+  #            "p_sow" = mod_data <- lm((def_value) ~ poly(p_sow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_grow" = mod_data <- lm((def_value) ~ poly(p_grow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_harv" = mod_data <- lm((def_value) ~ poly(p_harv,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_sup" = mod_data <- lm((def_value) ~ poly(p_sup,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+  #            "p_onemonth" = mod_data <- lm((def_value) ~ poly(p_onemonth,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data))
+  #   }
+  #   
+  #   return(mod_data)
+  #   
+  # }
+  # 
+  # ## regress using felm
+  # regress_felm <- function(data, var, level) {
+  #   
+  #   if(level == 1) {
+  #     switch(var, 
+  #            "p_sow" = mod_data <- felm((def_value) ~ p_sow | market + yrmnth, data=data),
+  #            "p_grow" = mod_data <- felm((def_value) ~ p_grow | market + yrmnth, data=data),
+  #            "p_harv" = mod_data <- felm((def_value) ~ p_harv | market + yrmnth, data=data),
+  #            "p_sup" = mod_data <- felm((def_value) ~ p_sup | market + yrmnth, data=data),
+  #            "p_onemonth" = mod_data <- felm((def_value) ~ p_onemonth | market + yrmnth, data=data))
+  #     
+  #   } else if(level == "log") {
+  #     switch(var, 
+  #            "p_sow" = mod_data <- felm((def_value) ~ log(p_sow) | market + yrmnth, data=data),
+  #            "p_grow" = mod_data <- felm((def_value) ~ log(p_grow) | market + yrmnth, data=data),
+  #            "p_harv" = mod_data <- felm((def_value) ~ log(p_harv) | market + yrmnth, data=data),
+  #            "p_sup" = mod_data <- felm((def_value) ~ log(p_sup) | market + yrmnth, data=data),
+  #            "p_onemonth" = mod_data <- felm((def_value) ~ log(p_onemonth) | market + yrmnth, data=data))
+  #   } else {
+  #     switch(var, 
+  #            "p_sow" = mod_data <- felm((def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=data),
+  #            "p_grow" = mod_data <- felm((def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
+  #            "p_harv" = mod_data <- felm((def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
+  #            "p_sup" = mod_data <- felm((def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
+  #            "p_onemonth" = mod_data <- felm((def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
+  #   }
+  #   
+  #   return(mod_data)
+  #   
+  # }
   
   ## regress data with fixed effects
   l_regress <- function(data, var, level) {
@@ -227,7 +228,7 @@ for(i in 1:3) {
   all_final <- rbind(all_final, final)
 }
 
-write.csv(all_final, "model_selection_output.csv")
+write.csv(all_final, file_name)
 
 
 
