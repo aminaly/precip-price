@@ -67,11 +67,7 @@ for(i in 1:nrow(comps_plot)) {
   row <- comps_plot[i,]
   title <- paste(row$grain, row$time_period, "avg=", run_daily, "zeros=", include_zeros , "buf=", buf)
   
-  #If this is the first of a new section, plot just simple title before continuing
-  if((i %% 5) == 1) {
-    plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-    text(x = 0.5, y = 0.5, paste(row$grain), cex = 1.6, col = "black")
-  }
+  if(is.na(row$model_choice)) next
   
   #get the right data and level
   data <- switch(row$grain,
