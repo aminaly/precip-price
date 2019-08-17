@@ -295,7 +295,7 @@ linear_regression_interaction <- function(data, var) {
 bootstrap_data <- function(data, mod, var, short=F, name="", xrange=0, level, log) {
   
   #check to see if we've run this before. If so just return it
-  bootfile <- paste0("boostraps/", name)
+  bootfile <- paste0("bootsraps/", name)
   if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
   
   num <- ifelse(short, 100, 1000)
