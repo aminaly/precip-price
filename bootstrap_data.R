@@ -67,7 +67,7 @@ for(i in 1:nrow(comps_plot)) {
   row <- comps_plot[i,]
   title <- paste(row$grain, row$time_period, "avg=", run_daily, "zeros=", include_zeros , "buf=", buf)
   
-  if(is.na(row$model_choice)) next
+  if(row$model_choice == "") next
   
   #get the right data and level
   data <- switch(row$grain,
