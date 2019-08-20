@@ -12,5 +12,5 @@
 module load R/3.4.0
 
 cd $OAK/group_members/aminaly/precip-price
-
-Rscript ./bootstrap_data.R 
+#let buffer=2
+Rscript ./bootstrap_data.R #$buffer 
