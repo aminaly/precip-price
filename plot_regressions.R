@@ -7,19 +7,19 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
 price <- readRDS("saved-output/formatted-price.rds")
 
 # variables that might change
-run_daily <- TRUE
-include_zeros <- TRUE
+run_daily <- FALSE
+include_zeros <- FALSE
 bufs <- c(.25, 1, 2)
 
 ## adjust mins and maxs if you must
-ymaxs <- c(.2, .3, .2, 10, 10)
-ymins <- c(-.2, -.2, -.2, -2, -2)
+ymaxs <- c(.3, .5, .5, .1, .1)
+ymins <- c(-.2, -.2, -.1, -.1, -.1)
 ys <- cbind(rep("sorghum", 5), ymaxs, ymins)
-ymaxs <- c(.4, .3, .5, 1, .5)
-ymins <- c(-.4, -.2, -.5, -5, -.5)
+ymaxs <- c(40, .2, .5, 4, 2)
+ymins <- c(-12, -.2, -1, -18, -8)
 ys <- rbind(ys, cbind(rep("millet", 5), ymaxs, ymins))
-ymaxs <- c(30, 5, 15, .1, .1)
-ymins <- c(-4, -20, -60, -.1, -.1)
+ymaxs <- c(.5, 1, 1, .5, .1)
+ymins <- c(-3, -.5, -1, -.5, -.1)
 ys <- rbind(ys, cbind(rep("maize", 5), ymaxs, ymins))
 
 par(mfrow=c(3,2))
@@ -48,7 +48,8 @@ for(i in 1:(nrow(comps)/3)) {
     text(x = 0.5, y = 0.5, paste(title, "No Ideal Model"), cex = 1.6, col = "black")
     next
   } else {
-    plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
+    #xl <- ifelse(run_daily, c(0, 400), c(0, 2000))
+    plot(100,xlim=c(0, 2000),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
   }
   
   for(b in 1:3) {
@@ -89,7 +90,8 @@ for(i in 1:(nrow(comps)/3)) {
     #get model
     mod <- get_model_regression(data, row$time_period, level, log=TRUE)
     #create bootstrap name based on grain, buffer, time period, avg/accumulated, and zeroes/nozeros
-    boots <- bootstrap_data(data, mod, row$time_period, xrange=0:400, level=level, log=TRUE, short = F, name = paste0(title, ".rds"))
+    xrge <- ifelse(run_daily, 0:400, 0:2000)
+    boots <- bootstrap_data(data, mod, row$time_period, xrange=xrge, level=level, log=TRUE, short = F, name = paste0(title, ".rds"))
     
     #plot with the title
     x <- boots[[2]]

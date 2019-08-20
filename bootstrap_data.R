@@ -67,7 +67,7 @@ for(run in 1:4) {
     bootname <- paste0(data$type[1], "_", buf, "_", row$time_period, "_")
     bootname <- ifelse(run_daily, paste0(bootname, "average_"), paste0(bootname, "accumulated_"))
     bootname <- ifelse(include_zeros, paste0(bootname, "zeros.rds"), paste0(bootname, "nozeros.rds"))
-    boots <- bootstrap_data(data, mod, row$time_period, xrange=0:400, level=level, log=TRUE, short = F, name = bootname)
+    boots <- bootstrap_data(data, mod, row$time_period, xrange=xrng, level=level, log=TRUE, short = F, name = bootname)
     
   }
   
