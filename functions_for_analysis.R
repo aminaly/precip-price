@@ -130,7 +130,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
       filter(location == data$location[i]) %>%
       filter(date >= early_date) %>%
       filter(date <= late_date) %>%
-      group_by(country, location, product, date) %>%
+      group_by(country, location, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
     rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
@@ -145,7 +145,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
       filter(location == data$location[i]) %>%
       filter(date >= early_date) %>%
       filter(date <= late_date) %>%
-      group_by(country, location, product, date) %>%
+      group_by(country, location, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
     rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
@@ -160,7 +160,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
       filter(location == data$location[i]) %>%
       filter(date >= early_date) %>%
       filter(date <= late_date) %>%
-      group_by(country, location, product, date) %>%
+      group_by(country, location, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
     rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
@@ -175,7 +175,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
       filter(date >= early_date) %>%
       #notice that we got rid of the equal to for the late date. Doesn't make sense for supply chain questions
       filter(date < late_date) %>%
-      group_by(country, location, product, date) %>%
+      group_by(country, location, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
     rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
@@ -190,7 +190,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
       filter(date >= early_date) %>%
       #notice that we got rid of the equal to for the late date. Doesn't make sense for supply chain questions
       filter(date < late_date) %>%
-      group_by(country, location, product, date) %>%
+      group_by(country, location, date) %>%
       summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
     rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
