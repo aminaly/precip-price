@@ -35,18 +35,18 @@ pp_data <- clean_precip(precip)
 ##correctly filter out the data for analysis
 filter_grain <- function(data, grain) {
   
-  if(grain == "Sorghum") {
+  if(grain == "sorghum") {
     
     dta <- data[str_detect(data$product, "Sorghum"),]
     dta <- dta[!str_detect(dta$product, "Sorghum Flour"),]
     dta$type <- "sorghum"
     
-  } else if(grain == "Millet") {
+  } else if(grain == "millet") {
     
     dta <- data[str_detect(data$product, "Millet"),]
     dta$type <- "millet"
     
-  } else if(grain == "Maize") {
+  } else if(grain == "maize") {
     
     dta <- data[str_detect(data$product, "Maize"),]
     dta <- dta[!str_detect(dta$product, "Meal"),]
@@ -83,9 +83,9 @@ filter_dates <- function(data, grn) {
   
   #note that these dates were chosen by checking for maximum overlap in data. Earliest date is 1 year before 
   #the intended time period for use in precip calculation. It is removed after precip calcs are done
-  dates <- switch(grn, "Sorghum" = c(as.Date("03/01/2008", "%m/%d/%Y"), as.Date("09/01/2017", "%m/%d/%Y")),
-                  "Maize" = c(as.Date("05/02/2011", "%m/%d/%Y"), as.Date("12/27/2017", "%m/%d/%Y")),
-                  "Millet" = c(as.Date("02/01/2010", "%m/%d/%Y"), as.Date("08/30/2018", "%m/%d/%Y")))
+  dates <- switch(grn, "sorghum" = c(as.Date("03/01/2008", "%m/%d/%Y"), as.Date("09/01/2017", "%m/%d/%Y")),
+                  "maize" = c(as.Date("05/02/2011", "%m/%d/%Y"), as.Date("12/27/2017", "%m/%d/%Y")),
+                  "millet" = c(as.Date("02/01/2010", "%m/%d/%Y"), as.Date("08/30/2018", "%m/%d/%Y")))
   
   data <- data %>% filter(date >= dates[1]) %>% filter(date <= dates[2])
   
@@ -203,6 +203,18 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
   saveRDS(data, calcname)
   return(data)
   
+}
+
+##prepare data
+#does all the calls necessary to get data back for any given grain. Shortcut
+get_grain_data <- function(pp_data, grn, run_daily, include_zeros) {
+  
+  data <- filter_grain(pp_data, grn)
+  data <- merge_seasons(data, grn)
+  data <- filter_dates(data, grn)
+  data <- calc_precip(data, daily = run_daily, zeros = include_zeros)
+  
+  return(data)
 }
 
 ##### REGRESSIONS #####

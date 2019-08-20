@@ -1,294 +1,136 @@
-#### Regression plots ####
-## Plot Sorghum
-lst <- list(sorghum_sow_boot, sorghum_grow_boot, sorghum_harv_boot, sorghum_sup_boot, sorghum_onem_boot)
-nmes <- c("Sowing (Linear)", "Growing (Quadratic)", "Harvest (Linear)", "Supply Chain (Linear)", "One Month Prior to Sale (Quadratic)")
-par(mfrow=c(3,2))
+## Use this file to plot regressions with ideal models
 
-plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-text(x = 0.5, y = 0.5, paste("Sorghum"), cex = 1.6, col = "black")
-ymaxs <- c(35, 55, 20, 5, 12)
-ymins <- c(-5, -15, -15, -5, -7)
+#set up directories and pull in relevant data
+ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price"))
+price <- readRDS("saved-output/formatted-price.rds")
 
-for(nm in 1:5) {
-  
-  l <- lst[[nm]]
-  nme <- nmes[nm]
-  
-  x <- l[[2]]
-  yy <- l[[3]]
-  coef <- l[[1]]
-  
-  if(ncol(coef) > 1) {
-    plot(100,xlim=c(0,700),ylim=c(ymins[nm], ymaxs[nm]),las=1,xlab="precip",ylab="value", main=nme )  
-    print("made it here")
-    print(ncol(coef))
-    for (i in 1:100) {
-      yy <- x*coef[i,1] + x^2*coef[i,2]  
-      yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
-    }
-  } else {
-    plot(100,xlim=c(0,700),ylim=c(ymins[nm], ymaxs[nm]),las=1,xlab="precip",ylab="value", main=nme)  
-    for (i in 1:100) {
-      yy <- x*coef[i]
-      yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
-    }
-  }
-}
-
-## Plot Millet
-lst <- list(millet_sow_boot, millet_grow_boot, millet_harv_boot, millet_sup_boot, millet_onem_boot)
-nmes <- c("Sowing (Quadratic)", "Growing (Quadratic)", "Harvest (Linear)", "Supply Chain (Quadratic)", "One Month Prior to Sale (Quadratic)")
-par(mfrow=c(3,2))
-ymaxs <- c(30, 30, 22, 5, 15)
-ymins <- c(-50, -5, -50, -10, -10)
-
-plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-text(x = 0.5, y = 0.5, paste("Millet"), cex = 1.6, col = "black")
-
-for(nm in 1:5) {
-  
-  l <- lst[[nm]]
-  nme <- nmes[nm]
-  
-  x <- l[[2]]
-  yy <- l[[3]]
-  coef <- l[[1]]
-  
-  if(ncol(coef) > 1) {
-    plot(100,xlim=c(0,700),ylim=c(ymins[nm], ymaxs[nm]),las=1,xlab="precip",ylab="value", main=nme )  
-    print(ncol(coef))
-    for (i in 1:100) {
-      yy <- x*coef[i,1] + x^2*coef[i,2]  
-      yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
-    }
-  } else {
-    plot(100,xlim=c(0,700),ylim=c(ymins[nm], ymaxs[nm]),las=1,xlab="precip",ylab="value", main=nme)  
-    for (i in 1:100) {
-      yy <- x*coef[i]
-      yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
-    }
-  }
-}
-
-##Plot Maize
-lst <- list(maize_sow_boot, maize_grow_boot, maize_harv_boot, maize_sup_boot, maize_onem_boot)
-nmes <- c("Sowing (Quadratic)", "Growing (Quadratic)", "Harvest (Linear)", "Supply Chain (Quadratic)", "One Month Prior to Sale (Quadratic)")
-par(mfrow=c(3,2))
-
-plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-text(x = 0.5, y = 0.5, paste("Maize"), cex = 1.6, col = "black")
-ymaxs <- c(22, 10, 10, 5, 7)
-ymins <- c(-5, -15, -15, -5. -7)
-
-for(nm in 1:5) {
-  
-  l <- lst[[nm]]
-  nme <- nmes[nm]
-  
-  x <- l[[2]]
-  yy <- l[[3]]
-  coef <- l[[1]]
-  
-  if(ncol(coef) > 1) {
-    plot(100,xlim=c(0,700),ylim=c(ymins[nm], ymaxs[nm]),las=1,xlab="precip",ylab="value", main=nme )  
-    print(ncol(coef))
-    for (i in 1:100) {
-      yy <- x*coef[i,1] + x^2*coef[i,2]  
-      yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
-    }
-  } else {
-    plot(100,xlim=c(0,700),ylim=c(ymins[nm], ymaxs[nm]),las=1,xlab="precip",ylab="value", main=nme)  
-    for (i in 1:100) {
-      yy <- x*coef[i]
-      yy <- yy - yy[x=80]
-      lines(x,yy,lwd=0.5)
-    }
-  }
-}
-
-
-#### Let's do some demeaned plots ####
-
-demean_plot <- function(data, to_log=FALSE) {
-  
-  #get the name of this data
-  name <- data$type[1]
-  
-  #cut out unnecessary data and set columns as factors
-  short_data <- data[,c(14,21,24,25,34:38)]
-  short_data$location <- as.factor(short_data$location)
-  short_data$yrmnth <- as.factor(short_data$yrmnth)
-  
-  #set up the plot
-  par(mfrow=c(3,2))
-  
-  title <- ifelse(to_log, paste0(name, " demeaned. Log Value \n"), paste0(name, "demeaned"))
-  
-  plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-  text(x = 0.5, y = 0.5, title, cex = 1.6, col = "black")
-  
-  for(nm in 1:5) {
-    
-    sm <- short_data[,c(1,3,4,nm + 4)]
-    sm <- sm[complete.cases(sm),]
-    demean_data <- demeanlist(sm, list(sm$location, sm$yrmnth))
-    
-    ylabel <- ifelse(to_log, "log value", "value")
-    
-    if(to_log) {
-      plot(x = demean_data[,2], y =log(demean_data[,4]), las=1,xlab="precip",
-         ylab=ylabel, main=colnames(sm)[4], pch = 19, col="darkgrey")  
-      plot_model 
-    } else {
-      plot(x = demean_data[,2], y =demean_data[,4], las=1,xlab="precip",
-           ylab=ylabel, main=colnames(sm)[4], pch = 19, col="darkgrey")
-    }
-  }
-}
-
-#demeaned plots
-demean_plot(sorghum)
-demean_plot(millet)
-demean_plot(maize)
-
-#demeaned plots- log values
-demean_plot(sorghum, to_log=TRUE)
-demean_plot(millet, to_log=TRUE)
-demean_plot(maize, to_log=TRUE)
-
-
-#### Regression plots with ideal model ####
-buf <- 1
-rdsname <- paste0("precip/", buf, "_precip.rds")
-precip <- readRDS(rdsname)
-precipname <- paste0("precip/", buf, "_ppdata.csv")
-run_daily <- FALSE
+# variables that might change
+run_daily <- TRUE
 include_zeros <- TRUE
+bufs <- c(.25, 1, 2)
 
-## Get data for each commodity
-#lets get the sorghum we want specificially & merge in seasonality
-sorghum <- filter_grain(pp_data, "Sorghum")
-sorghum <- merge_seasons(sorghum, "sorghum")
-#get locations with the right set of dates
-sorghum <- filter_dates(sorghum, "Sorghum")
-#calcualte precip for correct set of dates
-sorghum <- calc_precip(sorghum, daily = run_daily, zeros = include_zeros)
-
-#lets get the millet we want specificially & merge in seasonality
-millet <- filter_grain(pp_data, "Millet")
-millet <- merge_seasons(millet, "millet")
-#get locations with the right set of dates
-millet <- filter_dates(millet, "Millet")
-#calcualte precip for correct set of dates
-millet <- calc_precip(millet, daily = run_daily, zeros = include_zeros)
-
-#lets get the maize we want specificially & merge in seasonality
-maize <- filter_grain(pp_data, "Maize")
-maize <- merge_seasons(maize, "maize")
-#get locations with the right set of dates
-maize <- filter_dates(maize, "Maize")
-#calcualte precip for correct set of dates
-maize <- calc_precip(maize, daily = run_daily, zeros = include_zeros)
-
-
-## mins and maxs
-ymaxs <- c(1, .5, 1.2, 1, .2)
-ymins <- c(-1, -.5, -1, -1, -.2)
+## adjust mins and maxs if you must
+ymaxs <- c(.2, .3, .2, 10, 10)
+ymins <- c(-.2, -.2, -.2, -2, -2)
 ys <- cbind(rep("sorghum", 5), ymaxs, ymins)
-ymaxs <- c(.5, .5, 1, 3, .5)
-ymins <- c(-.5, -.5, -1, -12, -.5)
+ymaxs <- c(.4, .3, .5, 1, .5)
+ymins <- c(-.4, -.2, -.5, -5, -.5)
 ys <- rbind(ys, cbind(rep("millet", 5), ymaxs, ymins))
-ymaxs <- c(.5, 1, 1, .2, .2)
-ymins <- c(-1, -.5, -1, -.2, -.2)
+ymaxs <- c(30, 5, 15, .1, .1)
+ymins <- c(-4, -20, -60, -.1, -.1)
 ys <- rbind(ys, cbind(rep("maize", 5), ymaxs, ymins))
 
-
 par(mfrow=c(3,2))
-comps <- read.csv("model-comps/Model_Comps_Master.csv", stringsAsFactors = F)
-types <- c("p_sow", "p_grow", "p_harv", "p_sup", "p_onemonth")
+comps <- read.csv("model-comps/Master_Model_Comps.csv", stringsAsFactors = F)
+comps <- comps %>% filter(daily == run_daily) %>% filter(zeros == include_zeros)
 
-#lib: 4 = standard, 5 = retail only, 6 = Daily Average, 7 = Daily Average No Days below 1mm
-# 8 = Avg, > 0
-type <- 8
-
-comps_plot <- comps %>% filter(Buffer == buf)
-
-for(i in 1:nrow(comps_plot)) {
+for(i in 1:(nrow(comps)/3)) {
   
-  #select the current row, and make sure it's usable
-  row <- comps_plot[i,]
-  title <- paste(row$Grain, row$time_period, row[type], "buf=", buf, ">0")
+  #get the current row we're working with 
+  row <- comps[i,]
   
-  #If this is the first of a new section, plot just simple title before continuing
+  #if this is the first of the grains, plot title first
   if((i %% 5) == 1) {
     plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-    text(x = 0.5, y = 0.5, paste(row$Grain), cex = 1.6, col = "black")
+    text(x = 0.5, y = 0.5, row$grain, cex = 1.6, col = "black")
   }
+
+  #set the title of this plot
+  title <- paste0(row$grain, "_", row$time_period, "_")
+  title <- ifelse(run_daily, paste0(title, "average_"), paste0(title, "accumulated_"))
+  title <- ifelse(include_zeros, paste0(title, "zeros"), paste0(title, "nozeros"))
   
-  #get the right data and level
-  data <- switch(row$Grain,
-                 "sorghum" = sorghum,
-                 "maize" = maize,
-                 "millet" = millet)
-  level <- switch(as.character(row[type]),
-                 "Log_Linear" = 1,
-                 "Log_2" = 2,
-                 "Log_3" = 3,
-                 "Log_Log" = "log")
-  
-  #if there is no level, plot title and move on
-  if(is.na(row[type])) {
-    
+  #if there is no ideal model we'll just say so and move on. Else start the plot
+  if(row$model_choice == "") {
     plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
     text(x = 0.5, y = 0.5, paste(title, "No Ideal Model"), cex = 1.6, col = "black")
     next
+  } else {
+    plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
   }
   
-  #get model
-  mod <- get_model_regression(data, row$time_period, level, log=TRUE)
-  
-  #create bootstrap name based on grain, buffer, time period, avg/accumulated, and zeroes/nozeros
-  bootname <- paste0(data$type[1], "_", buf, "_", row$time_period, "_")
-  bootname <- ifelse(run_daily, paste0(bootname, "average_"), paste0(bootname, "accumulated_"))
-  bootname <- ifelse(include_zeros, paste0(bootname, "zeros.rds"), paste0(bootname, "nozeros.rds"))
-  boots <- bootstrap_data(data, mod, row$time_period, xrange=0:400, level=level, log=TRUE, short = F, name = bootname)
-
-  #plot with the title
-  x <- boots[[2]]
-  yy <- boots[[3]]
-  coef <- boots[[1]]
-  
-  bts <- matrix(nrow=100,ncol=length(x))
-  if(level == 2) {
-    for (j in 1:100) {
-      yy <- x*coef[j,1] + x^2*coef[j,2]  
-      yy <- yy - yy[x=80]
-      bts[j,] <- yy 
+  for(b in 1:3) {
+    
+    buf <- bufs[b]
+    #get the right precip data
+    rdsname <- paste0("precip/", buf, "_precip.rds")
+    precip <- readRDS(rdsname)
+    source(paste0(getwd(), "/functions_for_analysis.R"))
+    
+    
+    ## Get data for each commodity
+    #lets get the data we want specificially & merge in seasonality
+    sorghum <- get_grain_data(pp_data, "sorghum", run_daily, include_zeros)
+    millet <- get_grain_data(pp_data, "millet", run_daily, include_zeros)
+    maize <- get_grain_data(pp_data, "maize", run_daily, include_zeros)
+    
+    #set title for bootstrap
+    title <- paste0(row$grain, "_", buf, "_", row$time_period, "_")
+    title <- ifelse(run_daily, paste0(title, "average_"), paste0(title, "accumulated_"))
+    title <- ifelse(include_zeros, paste0(title, "zeros"), paste0(title, "nozeros"))
+    
+    #get the right model given the buffer 
+    model_choice <- comps %>% filter(buffer == buf) %>% filter(time_period == row$time_period) %>% filter(grain == row$grain)
+    model_choice <- model_choice$model_choice
+      
+    #get the right data and level
+    data <- switch(row$grain,
+                   "sorghum" = sorghum,
+                   "maize" = maize,
+                   "millet" = millet)
+    level <- switch(as.character(model_choice),
+                    "Log_Linear" = 1,
+                    "Log_2" = 2,
+                    "Log_3" = 3,
+                    "Log_Log" = "log")
+    
+    #get model
+    mod <- get_model_regression(data, row$time_period, level, log=TRUE)
+    #create bootstrap name based on grain, buffer, time period, avg/accumulated, and zeroes/nozeros
+    boots <- bootstrap_data(data, mod, row$time_period, xrange=0:400, level=level, log=TRUE, short = F, name = paste0(title, ".rds"))
+    
+    #plot with the title
+    x <- boots[[2]]
+    yy <- boots[[3]]
+    coef <- boots[[1]]
+    
+    bts <- matrix(nrow=1000,ncol=length(x))
+    
+    #using bootstraps, lets make all the lines
+    if(level == 2) {
+      for (j in 1:1000) {
+        yy <- x*coef[j,1] + x^2*coef[j,2]  
+        yy <- yy - yy[x=80]
+        bts[j,] <- yy 
+      }
+      
+    } else if (level == 3) {
+      for (j in 1:1000) {
+        yy <- x*coef[j,1] + x^2*coef[j,2] + x^3*coef[j,3] 
+        yy <- yy - yy[x=80]
+        bts[j,] <- yy
+      }
+    } else {
+      for (j in 1:1000) {
+        yy <- x*coef[j]
+        yy <- yy - yy[x=80]
+        bts[j,] <- yy
+      }
     }
     
-  } else if (level == 3) {
-    for (j in 1:100) {
-      yy <- x*coef[j,1] + x^2*coef[j,2] + x^3*coef[j,3] 
-      yy <- yy - yy[x=80]
-      bts[j,] <- yy
-    }
-  } else {
-    for (j in 1:100) {
-      yy <- x*coef[j]
-      yy <- yy - yy[x=80]
-      bts[j,] <- yy
-    }
+    #get confidence intervals
+    colors <- c("orangered", "goldenrod", "navy")
+    confint <- apply(bts,2,function(x) quantile(x,probs=c(0.05,0.5,0.95))) 
+    polygon(c(x,rev(x)),c(confint[1,],rev(confint[3,])),col=adjustcolor(colors[b], alpha=.3),border = NA)
+    lines(x,confint[2,], col=colors[b])  #median estimate across bootstraps
+    
   }
   
-  confint <- apply(bts,2,function(x) quantile(x,probs=c(0.05,0.5,0.95))) 
-  plot(100,xlim=c(0,400),ylim=c(as.numeric(ys[i,3]),as.numeric(ys[i,2])),las=1,xlab="precip",ylab="value", main=title)  
-  polygon(c(x,rev(x)),c(confint[1,],rev(confint[3,])),col="darkolivegreen3",border = NA)
-  lines(x,confint[2,])  #median estimate across bootstraps
-  
 }
+
+
+
+
 
