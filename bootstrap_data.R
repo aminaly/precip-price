@@ -6,7 +6,8 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
 price <- readRDS("saved-output/formatted-price.rds")
 
 ## pick up args from commandline/sbatch
-buf <- .25
+args <- commandArgs(trailingOnly = TRUE)
+buf <- as.numeric(args[1])
 
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
@@ -18,26 +19,26 @@ include_zeros <- TRUE
 
 ## Get data for each commodity
 #lets get the sorghum we want specificially & merge in seasonality
-sorghum <- filter_grain(pp_data, "sorghum")
+sorghum <- filter_grain(pp_data, "Sorghum")
 sorghum <- merge_seasons(sorghum, "sorghum")
 #get locations with the right set of dates
-sorghum <- filter_dates(sorghum, "sorghum")
+sorghum <- filter_dates(sorghum, "Sorghum")
 #calcualte precip for correct set of dates
 sorghum <- calc_precip(sorghum, daily = run_daily, zeros = include_zeros)
 
 #lets get the millet we want specificially & merge in seasonality
-millet <- filter_grain(pp_data, "millet")
+millet <- filter_grain(pp_data, "Millet")
 millet <- merge_seasons(millet, "millet")
 #get locations with the right set of dates
-millet <- filter_dates(millet, "millet")
+millet <- filter_dates(millet, "Millet")
 #calcualte precip for correct set of dates
 millet <- calc_precip(millet, daily = run_daily, zeros = include_zeros)
 
 #lets get the maize we want specificially & merge in seasonality
-maize <- filter_grain(pp_data, "maize")
+maize <- filter_grain(pp_data, "Maize")
 maize <- merge_seasons(maize, "maize")
 #get locations with the right set of dates
-maize <- filter_dates(maize, "maize")
+maize <- filter_dates(maize, "Maize")
 #calcualte precip for correct set of dates
 maize <- calc_precip(maize, daily = run_daily, zeros = include_zeros)
 
@@ -64,10 +65,8 @@ for(i in 1:nrow(comps_plot)) {
   
   #select the current row, and make sure it's usable
   row <- comps_plot[i,]
-  title <- paste0(data$type[1], "_", buf, "_", row$time_period, "_")
-  title <- ifelse(run_daily, paste0(bootname, "average_"), paste0(bootname, "accumulated_"))
-  title <- ifelse(include_zeros, paste0(bootname, "zeros.rds"), paste0(bootname, "nozeros.rds"))
-
+  title <- paste(row$grain, row$time_period, "avg=", run_daily, "zeros=", include_zeros , "buf=", buf)
+  
   if(row$model_choice == "") next
   
   #get the right data and level
@@ -93,8 +92,11 @@ for(i in 1:nrow(comps_plot)) {
   mod <- get_model_regression(data, row$time_period, level, log=TRUE)
   
   #create bootstrap name based on grain, buffer, time period, avg/accumulated, and zeroes/nozeros
-  
-  boots <- bootstrap_data(data, mod, row$time_period, xrange=0:400, level=level, log=TRUE, short = F, name = paste0(title, ".rds"))
+  xrng <- ifelse(run_daily, 0:400, 0:2000)
+  bootname <- paste0(data$type[1], "_", buf, "_", row$time_period, "_")
+  bootname <- ifelse(run_daily, paste0(bootname, "average_"), paste0(bootname, "accumulated_"))
+  bootname <- ifelse(include_zeros, paste0(bootname, "zeros.rds"), paste0(bootname, "nozeros.rds"))
+  boots <- bootstrap_data(data, mod, row$time_period, xrange=0:400, level=level, log=TRUE, short = F, name = bootname)
   
 }
 
