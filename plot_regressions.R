@@ -22,7 +22,7 @@ ymaxs <- c(.5, 1, 1, .5, .1)
 ymins <- c(-3, -.5, -1, -.5, -.1)
 ys <- rbind(ys, cbind(rep("maize", 5), ymaxs, ymins))
 
-par(mfrow=c(3,2))
+par(mfrow=c(6,2))
 comps <- read.csv("model-comps/Master_Model_Comps.csv", stringsAsFactors = F)
 comps <- comps %>% filter(daily == run_daily) %>% filter(zeros == include_zeros)
 

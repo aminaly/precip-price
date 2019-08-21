@@ -101,8 +101,9 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
   
   #check first to see if we've already calculated this.
   grn <- data$type[1]
-  calcname <- ifelse(daily,paste0("precip/calc_", grn, "_", buf, "daily_ppdata.rds"), paste0("precip/calc_", grn, "_", buf, "_ppdata.rds"))
-  calcname <- ifelse(zeros, calcname, paste0(str_sub(calcname, end = -4), "_no_zeros.rds"))
+  calcname <- paste0("precip/calc_ppdata_", grn, "_", buf)
+  calcname <- ifelse(daily, paste0(calcname, "_average"), paste0(calcname, "_accumulated"))
+  calcname <- ifelse(zeros, paste0(calcname, "zeros.rds"), paste0(calcname, "no_zeros.rds"))
   if(file.exists(calcname)) return(readRDS(calcname))
   
   #if we are removing zeros, let's get it out of the data now. It's really anything less than 1mm
