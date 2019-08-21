@@ -1,7 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=bootstrapcalcsbuf.25
+#SBATCH --job-name=calc_precips2
 #SBATCH --nodes=1
-#SBATCH --time=03:00:00
+#SBATCH --array=1-3
+#SBATCH --time=05:00:00
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem-per-cpu=60GB
 #SBATCH --mail-type=END,FAIL 
@@ -12,5 +13,5 @@
 module load R/3.4.0
 
 cd $OAK/group_members/aminaly/precip-price
-#let buffer=2
-Rscript ./bootstrap_data.R #$buffer 
+let buffer=$SLURM_ARRAY_TASK_ID
+Rscript ./calc_precips.R $buffer 
