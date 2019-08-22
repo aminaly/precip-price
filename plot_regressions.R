@@ -82,10 +82,10 @@ for(i in 1:(nrow(comps)/3)) {
                    "maize" = maize,
                    "millet" = millet)
     level <- switch(as.character(model_choice),
-                    "Log_Linear" = 1,
-                    "Log_2" = 2,
-                    "Log_3" = 3,
-                    "Log_Log" = "log")
+                    "log_linear" = 1,
+                    "log_2" = 2,
+                    "log_3" = 3,
+                    "log_log" = "log")
     
     #get model
     mod <- get_model_regression(data, row$time_period, level, log=TRUE)

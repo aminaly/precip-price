@@ -26,8 +26,6 @@ clean_precip <- function(precip) {
   return(pp_data)
 }
 
-pp_data <- clean_precip(precip)
-
 #divide deflation by 100, then devide rpie y that
 #run log of the converted value not the usd con#pp_data <- clean_precip(precip)
 #### Set of functions for standardizing regression runs
@@ -103,7 +101,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
   grn <- data$type[1]
   calcname <- paste0("precip/calc_ppdata_", grn, "_", buf)
   calcname <- ifelse(daily, paste0(calcname, "_average"), paste0(calcname, "_accumulated"))
-  calcname <- ifelse(zeros, paste0(calcname, "zeros.rds"), paste0(calcname, "no_zeros.rds"))
+  calcname <- ifelse(zeros, paste0(calcname, "_zeros.rds"), paste0(calcname, "_no_zeros.rds"))
   if(file.exists(calcname)) return(readRDS(calcname))
   
   #if we are removing zeros, let's get it out of the data now. It's really anything less than 1mm
@@ -220,7 +218,80 @@ get_grain_data <- function(pp_data, grn, run_daily, include_zeros) {
 
 ##### REGRESSIONS #####
 
-## regress data
+## regress log data with fixed effects
+l_regress <- function(data, var, level) {
+  
+  if(level == 1) {
+    switch(var, 
+           "p_sow" = mod_data <- lm(log(def_value) ~ p_sow + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_grow" = mod_data <- lm(log(def_value) ~ p_grow + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_harv" = mod_data <- lm(log(def_value) ~ p_harv + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_sup" = mod_data <- lm(log(def_value) ~ p_sup + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_onemonth" = mod_data <- lm(log(def_value) ~ p_onemonth + as.factor(market) + as.factor(yrmnth), data=data))
+    
+  } else if(level == "log") {
+    
+    log <- function(x) ifelse(x <= 0, 0, base::log(x))
+    
+    switch(var, 
+           "p_sow" = mod_data <- lm(log(def_value) ~ log(p_sow) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_grow" = mod_data <- lm(log(def_value) ~ log(p_grow) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_harv" = mod_data <- lm(log(def_value) ~ log(p_harv) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_sup" = mod_data <- lm(log(def_value) ~ log(p_sup) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_onemonth" = mod_data <- lm(log(def_value) ~ log(p_onemonth) + as.factor(market) + as.factor(yrmnth), data=data))
+  } else {
+    
+    log <- function(x) ifelse(x <= 0, 0, base::log(x))
+    
+    switch(var, 
+           "p_sow" = mod_data <- lm(log(def_value) ~ poly(p_sow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_grow" = mod_data <- lm(log(def_value) ~ poly(p_grow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_harv" = mod_data <- lm(log(def_value) ~ poly(p_harv,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_sup" = mod_data <- lm(log(def_value) ~ poly(p_sup,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_onemonth" = mod_data <- lm(log(def_value) ~ poly(p_onemonth,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data))
+  }
+  
+  return(mod_data)
+  
+}
+
+## regress log using felm
+l_regress_felm <- function(data, var, level) {
+  
+  if(level == 1) {
+    switch(var, 
+           "p_sow" = mod_data <- felm(log(def_value) ~ p_sow | market + yrmnth, data=data),
+           "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
+           "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
+           "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
+    
+  } else if(level == "log") {
+    
+    log <- function(x) ifelse(x <= 0, 0, base::log(x))
+    
+    switch(var, 
+           "p_sow" = mod_data <- felm(log(def_value) ~ log(p_sow) | market + yrmnth, data=data),
+           "p_grow" = mod_data <- felm(log(def_value) ~ log(p_grow) | market + yrmnth, data=data),
+           "p_harv" = mod_data <- felm(log(def_value) ~ log(p_harv) | market + yrmnth, data=data),
+           "p_sup" = mod_data <- felm(log(def_value) ~ log(p_sup) | market + yrmnth, data=data),
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ log(p_onemonth) | market + yrmnth, data=data))
+  } else {
+    
+    log <- function(x) ifelse(x <= 0, 0, base::log(x))
+    
+    switch(var, 
+           "p_sow" = mod_data <- felm(log(def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=data),
+           "p_grow" = mod_data <- felm(log(def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
+           "p_harv" = mod_data <- felm(log(def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
+           "p_sup" = mod_data <- felm(log(def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
+  }
+  
+  return(mod_data)
+  
+}
+
 #var is the time period we are aiming for. Should be a column in data
 #level is either a value 1-i or "log." referes to independent variable
 #log is if we want the dependent variable (value) to be logged before running the regression
@@ -237,6 +308,7 @@ get_model_regression <- function(data, var, level, log=TRUE) {
              "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
       
     } else if(level == "log") {
+      log <- function(x) ifelse(x <= 0, 0, base::log(x))
       switch(var, 
              "p_sow" = mod_data <- felm(log(def_value) ~ log(p_sow) | market + yrmnth, data=data),
              "p_grow" = mod_data <- felm(log(def_value) ~ log(p_grow) | market + yrmnth, data=data),
@@ -285,19 +357,6 @@ get_model_regression <- function(data, var, level, log=TRUE) {
   
 }
 
-## linear interaction model with fixed effects
-linear_regression_interaction <- function(data, var) {
-  
-  switch(var, 
-         "p_sow" = mod_data <- lm((def_value) ~ p_sow +  p_sow * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_grow" = mod_data <- lm((def_value) ~ p_grow +  p_grow * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_harv" = mod_data <- lm((def_value) ~ p_harv +  p_harv * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_sup" = mod_data <- lm((def_value) ~ p_sup +  p_sup * country  + as.factor(market) + as.factor(yrmnth), data=data),
-         "p_onemonth" = mod_data <- lm((def_value) ~ p_onemonth +  p_onemonth * country  + as.factor(market) + as.factor(yrmnth), data=data))
-  
-  return(mod_data)
-  
-}
 
 
 ##### BOOTSTRAP #####
@@ -309,7 +368,7 @@ bootstrap_data <- function(data, mod, var, short=F, name="", xrange=0, level, lo
   
   #check to see if we've run this before. If so just return it
   bootfile <- paste0("bootstraps/", name)
-  if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
+  #if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
   
   num <- ifelse(short, 100, 1000)
   x = ifelse(xrange == 0, 0:500, xrange)

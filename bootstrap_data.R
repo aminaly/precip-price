@@ -6,13 +6,13 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
 price <- readRDS("saved-output/formatted-price.rds")
 
 ## pick up args from commandline/sbatch
-#args <- commandArgs(trailingOnly = TRUE)
-#buf <- as.numeric(args[1])
-buf <- .25
+args <- commandArgs(trailingOnly = TRUE)
+b <- as.numeric(args[1])
+bufs <- c(0.25, 1, 2)
+buf <- bufs[b]
 
 rdsname <- paste0("precip/", buf, "_precip.rds")
 precip <- readRDS(rdsname)
-precipname <- paste0("precip/", buf, "_ppdata.csv")
 source(paste0(getwd(), "/functions_for_analysis.R"))
 daily <- c(TRUE, TRUE, FALSE, FALSE)
 zeros <- c(TRUE, FALSE, TRUE, FALSE)

@@ -1,1 +1,4 @@
 load("/Users/amina/Documents/Stanford/precip-price/precip/0.75_precip copy.rds")
+load("/Users/amina/Documents/Stanford/precip-price/precip/calc_ppdata_sorghum_0.25_averageno_zeros.rds")
+load("/Users/amina/Documents/Stanford/precip-price/precip/calc_ppdata_maize_2_accumulatedno_zeros.rds")
+load("/Users/amina/Documents/Stanford/precip-price/precip/calc_ppdata_sorghum_2_accumulatedno_zeros.rds")
