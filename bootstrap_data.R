@@ -24,6 +24,7 @@ for(run in 1:4) {
   
   ## Get data for each commodity
   #lets get the data we want specificially & merge in seasonality
+  pp_data <- clean_precip(precip)
   sorghum <- get_grain_data(pp_data, "sorghum", run_daily, include_zeros)
   millet <- get_grain_data(pp_data, "millet", run_daily, include_zeros)
   maize <- get_grain_data(pp_data, "maize", run_daily, include_zeros)
