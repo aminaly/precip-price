@@ -14,4 +14,4 @@ module load R/3.4.0
 
 cd $OAK/group_members/aminaly/precip-price
 let buffer=$SLURM_ARRAY_TASK_ID
-Rscript ./calc_precips.R $buffer 
+Rscript ./bootstrap_data.R $buffer 
