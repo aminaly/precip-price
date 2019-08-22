@@ -46,10 +46,10 @@ for(run in 1:4) {
                    "maize" = maize,
                    "millet" = millet)
     level <- switch(as.character(row$model_choice),
-                    "Log_Linear" = 1,
-                    "Log_2" = 2,
-                    "Log_3" = 3,
-                    "Log_Log" = "log")
+                    "log_linear" = 1,
+                    "log_2" = 2,
+                    "log_3" = 3,
+                    "log_log" = "log")
     
     #if there is no level, plot title and move on
     if(is.na(row$model_choice)) {
