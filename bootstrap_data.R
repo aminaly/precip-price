@@ -37,8 +37,7 @@ for(run in 1:4) {
     
     #select the current row, and make sure it's usable
     row <- comps_plot[i,]
-    title <- paste(row$grain, row$time_period, "avg=", run_daily, "zeros=", include_zeros , "buf=", buf)
-    
+
     if(row$model_choice == "") next
     
     #get the right data and level
@@ -52,23 +51,12 @@ for(run in 1:4) {
                     "log_3" = 3,
                     "log_log" = "log")
     
-    #if there is no level, plot title and move on
-    if(is.na(row$model_choice)) {
-      
-      plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-      text(x = 0.5, y = 0.5, paste(title, "No Ideal Model"), cex = 1.6, col = "black")
-      next
-    }
-    
     #get model
     mod <- get_model_regression(data, row$time_period, level, log=TRUE)
     
     #create bootstrap name based on grain, buffer, time period, avg/accumulated, and zeroes/nozeros
-    xrng <- ifelse(run_daily, 0:400, 0:2000)
-    bootname <- paste0(data$type[1], "_", buf, "_", row$time_period, "_")
-    bootname <- ifelse(run_daily, paste0(bootname, "average_"), paste0(bootname, "accumulated_"))
-    bootname <- ifelse(include_zeros, paste0(bootname, "zeros.rds"), paste0(bootname, "nozeros.rds"))
-    boots <- bootstrap_data(data, mod, row$time_period, xrange=xrng, level=level, log=TRUE, short = F, name = bootname)
+    bootname <- get_bootname(data$type[1], buf, row$time_period, run_daily, include_zeros)
+    boots <- bootstrap_data(data, mod, row$time_period, level=level, log=TRUE, short = F, name = bootname)
     
   }
   

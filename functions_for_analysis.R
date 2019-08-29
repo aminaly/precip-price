@@ -357,22 +357,18 @@ get_model_regression <- function(data, var, level, log=TRUE) {
   
 }
 
-
-
 ##### BOOTSTRAP #####
 
 ##bootstrap and graph
 #if you would like a saved out version, please include a name in the arguments
 #level stays blank if linear, given a value if poly
-bootstrap_data <- function(data, mod, var, short=F, name="", xrange=0, level, log) {
+bootstrap_data <- function(data, mod, var, short=F, name="", xrange, level, log) {
   
   #check to see if we've run this before. If so just return it
   bootfile <- paste0("bootstraps/", name)
   #if(file.exists(bootfile) && name != "") return(readRDS(bootfile))
   
   num <- ifelse(short, 100, 1000)
-  x = ifelse(xrange == 0, 0:500, xrange)
-  yy = x*mod$coefficients[1] 
   
   coef <- matrix(nrow=num, ncol=ifelse(level=="log", 1, level))
   ll = dim(data)[1]
@@ -389,12 +385,23 @@ bootstrap_data <- function(data, mod, var, short=F, name="", xrange=0, level, lo
   }
   
   #save it out for the next run if name was provided
-  returnlist <- list(coef, x, yy)
+  returnlist <- list(coef)
   if(name != "") saveRDS(returnlist, bootfile)
   
   return(returnlist)
   
 }
+
+get_bootname <- function(type, buf, time_period, run_daily, include_zeros) {
+  
+  bootname <- paste0(type, "_", buf, "_", time_period, "_")
+  bootname <- ifelse(run_daily, paste0(bootname, "average_"), paste0(bootname, "accumulated_"))
+  bootname <- ifelse(include_zeros, paste0(bootname, "zeros.rds"), paste0(bootname, "nozeros.rds"))
+  
+  return(bootname)
+  
+}
+
 
 ##### EXTREME VALUES #####
 

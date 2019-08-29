@@ -5,12 +5,23 @@ library(mapview)
 library(lfe)
 library(lubridate)
 
-buf <- 2
+args <- commandArgs(trailingOnly = TRUE)
+b <- as.numeric(args[1])
+bufs <- c(3, 4, 5)
+buf <- bufs[b]
 
 #setwd("~/scratch/groups/omramom/CHRIPS_monthly/")
-## NOTE if you want to run this you're going to have to move the chirps file into the right folder
-## I don't want to carry this massive file around
-precipitation <- brick("downloaded/chirps-v2-monthly.nc", band = 2) %>% crop(c(-25.35, 51.41, -46.97, 37.34))  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
+#set wd to where the chirps file is first
+ifelse(dir.exists("/Users/amina/Desktop/large_precip_price"),
+       setwd("/Users/amina/Desktop/large_precip_price"),
+       setwd("/oak/stanford/groups/omramom/datasets/CHIRPS/monthly"))
+
+precipitation <- brick("chirps-v2-monthly.nc", band = 2) %>% crop(c(-25.35, 51.41, -46.97, 37.34))  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
+
+
+ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price"))
 
 ## loop through every layer, for each unique location label and find precip, and add to table 
 locs <- unique(price[,c(1:2,16:17)])
@@ -30,7 +41,7 @@ markets_buffer = st_buffer(markets, buf)
 markets_buffer <- as(markets_buffer, 'Spatial')
 
 # if you want to map over africa, use this 
-markets_africa = st_intersection(markets_buffer, africa_km)
+#markets_africa = st_intersection(markets_buffer, africa_km)
 
 # Run through precipitation brick and extract over the buffers
 i <- 1
