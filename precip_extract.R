@@ -10,6 +10,10 @@ b <- as.numeric(args[1])
 bufs <- c(3, 4, 5)
 buf <- bufs[b]
 
+#check to see if we've extracted before
+rdsname <- paste0("precip/", buf, "_precip.rds")
+if(file.exists(paste0(getwd(), rdsname))) stop("Already exists")
+
 #setwd("~/scratch/groups/omramom/CHRIPS_monthly/")
 #set wd to where the chirps file is first
 ifelse(dir.exists("/Users/amina/Desktop/large_precip_price"),
@@ -18,10 +22,9 @@ ifelse(dir.exists("/Users/amina/Desktop/large_precip_price"),
 
 precipitation <- brick("chirps-v2-monthly.nc", band = 2) %>% crop(c(-25.35, 51.41, -46.97, 37.34))  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
 
-
-ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
-       setwd("/Users/amina/Documents/Stanford/precip-price"),
-       setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price"))
+ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price/"),
+       setwd("/Users/amina/Documents/Stanford/precip-price/"),
+       setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price/"))
 
 ## loop through every layer, for each unique location label and find precip, and add to table 
 locs <- unique(price[,c(1:2,16:17)])
@@ -33,8 +36,8 @@ st_crs(markets) <- 3857
 markets <- st_transform(markets, 3857)
 
 # transform Africa if you wanna
-st_crs(africa) <- 3857
-africa <- st_transform(africa,  3857)
+#st_crs(africa) <- 3857
+#africa <- st_transform(africa,  3857)
 
 # set up the buffers for your markets
 markets_buffer = st_buffer(markets, buf)
@@ -63,8 +66,7 @@ while(i < 446) {
 }
 
 #save this out to make my life easier
-rdsname <- paste0("precip/", buf, "_precip.rds")
-saveRDS(all_data, rdsname)
+saveRDS(all_data, paste0(getwd(), "/", rdsname))
 precip <- readRDS(rdsname)
 
 
