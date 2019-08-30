@@ -3,7 +3,12 @@
 # Source files with functions useful/data prep
 setwd("/Users/amina/Documents/Stanford/precip-price")
 price <- readRDS("saved-output/formatted-price.rds")
-bufs <- c(.25,1,2)
+
+## pick up args from commandline/sbatch
+args <- commandArgs(trailingOnly = TRUE)
+b <- as.numeric(args[1])
+bufs <- c(3, 4, 5)
+buf <- bufs[b]
 
 # Arguments to change depending on what you want to run
 daily <- c(TRUE, TRUE, FALSE, FALSE)
