@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=calc_precips2
 #SBATCH --nodes=1
-#SBATCH --array=1-2
+#SBATCH --array=1-3
 #SBATCH --time=05:00:00
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem-per-cpu=60GB
