@@ -73,7 +73,7 @@ merge_seasons <- function(data, grn) {
 ##fix dates
 #s < max == minus 1 year
 #s > max == same year 
-filter_dates <- function(data, grn) {
+filter_dates <- function(data, grn, overwrite=FALSE) {
   
   breakdown <- data %>% group_by(location, product) %>% 
     summarize(minyear = as.Date(format(min(date, na.rm = T), "%m/%d/%Y"), "%m/%d/%Y"),
@@ -102,7 +102,7 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
   calcname <- paste0("precip/calc_ppdata_", grn, "_", buf)
   calcname <- ifelse(daily, paste0(calcname, "_average"), paste0(calcname, "_accumulated"))
   calcname <- ifelse(zeros, paste0(calcname, "_zeros.rds"), paste0(calcname, "_no_zeros.rds"))
-  if(file.exists(calcname)) return(readRDS(calcname))
+  if(file.exists(calcname) & !overwrite) return(readRDS(calcname))
   
   #if we are removing zeros, let's get it out of the data now. It's really anything less than 1mm
   if(!zeros) data <- data %>% filter(avg_rainfall >= 1)
@@ -194,7 +194,54 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
     rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
     
     data$p_onemonth[i] <- rain
+  
+  # prior 2 months
+  # we don't update year because it is the same logic as the end of harvest szn 
+  late_date <- as.Date(data$date[i], format = "%Y-%m-%d") 
+  early_date <- seq(late_date, length = 2, by = "-2 months")[2]
+  rain_dates <- data %>%
+    filter(location == data$location[i]) %>%
+    filter(date >= early_date) %>%
+    #notice that we got rid of the equal to for the late date. Doesn't make sense for supply chain questions
+    filter(date < late_date) %>%
+    group_by(country, location, date) %>%
+    summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
+  rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
+  
+  data$p_twom[i] <- rain
+  
+  # prior 3 months
+  # we don't update year because it is the same logic as the end of harvest szn 
+  late_date <- as.Date(data$date[i], format = "%Y-%m-%d") 
+  early_date <- seq(late_date, length = 2, by = "-3 months")[2]
+  rain_dates <- data %>%
+    filter(location == data$location[i]) %>%
+    filter(date >= early_date) %>%
+    #notice that we got rid of the equal to for the late date. Doesn't make sense for supply chain questions
+    filter(date < late_date) %>%
+    group_by(country, location, date) %>%
+    summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
+  rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
+  
+  data$p_threem[i] <- rain
+  
+  # prior 6 months
+  # we don't update year because it is the same logic as the end of harvest szn 
+  late_date <- as.Date(data$date[i], format = "%Y-%m-%d") 
+  early_date <- seq(late_date, length = 2, by = "-6 months")[2]
+  rain_dates <- data %>%
+    filter(location == data$location[i]) %>%
+    filter(date >= early_date) %>%
+    #notice that we got rid of the equal to for the late date. Doesn't make sense for supply chain questions
+    filter(date < late_date) %>%
+    group_by(country, location, date) %>%
+    summarise(avg_rainfall = mean(avg_rainfall, na.rm = T))
+  rain <- ifelse(daily, mean(rain_dates$avg_rainfall), sum(rain_dates$avg_rainfall))
+  
+  data$p_sixm[i] <- rain
+  
   }
+
   
   #Get rid of the first year, just there for calculation purposes
   data <- data %>% filter(period_date >= min(period_date) + 365) 
@@ -206,12 +253,12 @@ calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
 
 ##prepare data
 #does all the calls necessary to get data back for any given grain. Shortcut
-get_grain_data <- function(pp_data, grn, run_daily, include_zeros) {
+get_grain_data <- function(pp_data, grn, run_daily, include_zeros, overwrite=FALSE) {
   
   data <- filter_grain(pp_data, grn)
   data <- merge_seasons(data, grn)
   data <- filter_dates(data, grn)
-  data <- calc_precip(data, daily = run_daily, zeros = include_zeros)
+  data <- calc_precip(data, daily = run_daily, zeros = include_zeros, overwrite)
   
   return(data)
 }

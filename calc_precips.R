@@ -25,8 +25,8 @@ for(run in 1:4) {
   
   #get the right pp_Data
   pp_data <- clean_precip(precip)
-  get_grain_data(pp_data, "sorghum", run_daily, include_zeros)
-  get_grain_data(pp_data, "millet", run_daily, include_zeros)
-  get_grain_data(pp_data, "maize", run_daily, include_zeros)
+  get_grain_data(pp_data, "sorghum", run_daily, include_zeros, TRUE)
+  get_grain_data(pp_data, "millet", run_daily, include_zeros, TRUE)
+  get_grain_data(pp_data, "maize", run_daily, include_zeros, TRUE)
   
 }
