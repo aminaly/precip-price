@@ -73,7 +73,7 @@ merge_seasons <- function(data, grn) {
 ##fix dates
 #s < max == minus 1 year
 #s > max == same year 
-filter_dates <- function(data, grn, overwrite=FALSE) {
+filter_dates <- function(data, grn) {
   
   breakdown <- data %>% group_by(location, product) %>% 
     summarize(minyear = as.Date(format(min(date, na.rm = T), "%m/%d/%Y"), "%m/%d/%Y"),
@@ -95,7 +95,7 @@ filter_dates <- function(data, grn, overwrite=FALSE) {
 
 ##calculate precip
 #daily = True means you get daily average values rather than total accumulated precip
-calc_precip <- function(data, daily=FALSE, zeros=TRUE) {
+calc_precip <- function(data, daily=FALSE, zeros=TRUE, overwrite=FALSE) {
   
   #check first to see if we've already calculated this.
   grn <- data$type[1]
