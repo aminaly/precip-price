@@ -8,7 +8,7 @@ price <- readRDS("saved-output/formatted-price.rds")
 ## pick up args from commandline/sbatch
 args <- commandArgs(trailingOnly = TRUE)
 b <- as.numeric(args[1])
-bufs <- c(3, 4)
+bufs <- c(3, 4, 5)
 buf <- bufs[b]
 
 rdsname <- paste0("precip/", buf, "_precip.rds")
