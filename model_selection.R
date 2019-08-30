@@ -1,7 +1,10 @@
 ### Running some basic code to decide on ideal model for each commodity
 
 # Source files with functions useful/data prep
-setwd("/Users/amina/Documents/Stanford/precip-price")
+ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/Users/amina/Documents/Stanford/precip-price"),
+       setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price"))
+
 price <- readRDS("saved-output/formatted-price.rds")
 
 ## pick up args from commandline/sbatch
@@ -29,7 +32,9 @@ for(run in 1:4) {
   
     rdsname <- paste0("precip/", buf, "_precip.rds")
     precip <- readRDS(rdsname)
-    source('~/Documents/Stanford/precip-price/functions_for_analysis.R')
+    ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
+       source("/Users/amina/Documents/Stanford/precip-price/functions_for_analysis.R"),
+       source("/oak/stanford/groups/omramom/group_members/aminaly/precip-price/functions_for_analysis.R"))
 
     #get the right pp_Data
     pp_data <- clean_precip(precip)
