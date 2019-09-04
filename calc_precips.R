@@ -4,7 +4,7 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
 price <- readRDS("saved-output/formatted-price.rds")
 
 ## Script to run to do a bunch of calculations 
-bufs <- c(.25, 1, 2, 3, 4, 5)
+bufs <- c(.25, .5, .75,  1, 2, 3, 4, 5)
 
 ## pick up args from commandline/sbatch
 args <- commandArgs(trailingOnly = TRUE)
