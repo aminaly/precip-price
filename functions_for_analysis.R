@@ -274,7 +274,10 @@ l_regress <- function(data, var, level) {
            "p_grow" = mod_data <- lm(log(def_value) ~ p_grow + as.factor(market) + as.factor(yrmnth), data=data),
            "p_harv" = mod_data <- lm(log(def_value) ~ p_harv + as.factor(market) + as.factor(yrmnth), data=data),
            "p_sup" = mod_data <- lm(log(def_value) ~ p_sup + as.factor(market) + as.factor(yrmnth), data=data),
-           "p_onemonth" = mod_data <- lm(log(def_value) ~ p_onemonth + as.factor(market) + as.factor(yrmnth), data=data))
+           "p_onemonth" = mod_data <- lm(log(def_value) ~ p_onemonth + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_twom" = mod_data <- lm(log(def_value) ~ p_twom + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_threem" = mod_data <- lm(log(def_value) ~ p_threem + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_sixm" = mod_data <- lm(log(def_value) ~ p_sixm + as.factor(market) + as.factor(yrmnth), data=data))
     
   } else if(level == "log") {
     
@@ -285,7 +288,10 @@ l_regress <- function(data, var, level) {
            "p_grow" = mod_data <- lm(log(def_value) ~ log(p_grow) + as.factor(market) + as.factor(yrmnth), data=data),
            "p_harv" = mod_data <- lm(log(def_value) ~ log(p_harv) + as.factor(market) + as.factor(yrmnth), data=data),
            "p_sup" = mod_data <- lm(log(def_value) ~ log(p_sup) + as.factor(market) + as.factor(yrmnth), data=data),
-           "p_onemonth" = mod_data <- lm(log(def_value) ~ log(p_onemonth) + as.factor(market) + as.factor(yrmnth), data=data))
+           "p_onemonth" = mod_data <- lm(log(def_value) ~ log(p_onemonth) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_twom" = mod_data <- lm(log(def_value) ~ log(p_twom) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_threem" = mod_data <- lm(log(def_value) ~ log(p_threem) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_sixm" = mod_data <- lm(log(def_value) ~ log(p_sixm) + as.factor(market) + as.factor(yrmnth), data=data))
   } else {
     
     log <- function(x) ifelse(x <= 0, 0, base::log(x))
@@ -295,7 +301,10 @@ l_regress <- function(data, var, level) {
            "p_grow" = mod_data <- lm(log(def_value) ~ poly(p_grow,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
            "p_harv" = mod_data <- lm(log(def_value) ~ poly(p_harv,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
            "p_sup" = mod_data <- lm(log(def_value) ~ poly(p_sup,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
-           "p_onemonth" = mod_data <- lm(log(def_value) ~ poly(p_onemonth,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data))
+           "p_onemonth" = mod_data <- lm(log(def_value) ~ poly(p_onemonth,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_twom" = mod_data <- lm(log(def_value) ~ poly(p_twom,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_threem" = mod_data <- lm(log(def_value) ~ poly(p_threem,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data),
+           "p_sixm" = mod_data <- lm(log(def_value) ~ poly(p_sixm,level,raw=T) + as.factor(market) + as.factor(yrmnth), data=data))
   }
   
   return(mod_data)
@@ -311,7 +320,10 @@ l_regress_felm <- function(data, var, level) {
            "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
            "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
            "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
-           "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data),
+           "p_twom" = mod_data <- felm(log(def_value) ~ p_twom | market + yrmnth, data=data),
+           "p_threem" = mod_data <- felm(log(def_value) ~ p_threem | market + yrmnth, data=data),
+           "p_sixm" = mod_data <- felm(log(def_value) ~ p_sixm | market + yrmnth, data=data))
     
   } else if(level == "log") {
     
@@ -322,7 +334,10 @@ l_regress_felm <- function(data, var, level) {
            "p_grow" = mod_data <- felm(log(def_value) ~ log(p_grow) | market + yrmnth, data=data),
            "p_harv" = mod_data <- felm(log(def_value) ~ log(p_harv) | market + yrmnth, data=data),
            "p_sup" = mod_data <- felm(log(def_value) ~ log(p_sup) | market + yrmnth, data=data),
-           "p_onemonth" = mod_data <- felm(log(def_value) ~ log(p_onemonth) | market + yrmnth, data=data))
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ log(p_onemonth) | market + yrmnth, data=data),
+           "p_twom" = mod_data <- felm(log(def_value) ~ log(p_twom) | market + yrmnth, data=data),
+           "p_threem" = mod_data <- felm(log(def_value) ~ log(p_threem) | market + yrmnth, data=data),
+           "p_sixm" = mod_data <- felm(log(def_value) ~ log(p_sixm) | market + yrmnth, data=data))
   } else {
     
     log <- function(x) ifelse(x <= 0, 0, base::log(x))
@@ -332,7 +347,10 @@ l_regress_felm <- function(data, var, level) {
            "p_grow" = mod_data <- felm(log(def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
            "p_harv" = mod_data <- felm(log(def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
            "p_sup" = mod_data <- felm(log(def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
-           "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
+           "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data),
+           "p_twom" = mod_data <- felm(log(def_value) ~ poly(p_twom,level,raw=T) | market + yrmnth, data=data),
+           "p_threem" = mod_data <- felm(log(def_value) ~ poly(p_threem,level,raw=T) | market + yrmnth, data=data),
+           "p_sixm" = mod_data <- felm(log(def_value) ~ poly(p_sixm,level,raw=T) | market + yrmnth, data=data))
   }
   
   return(mod_data)
@@ -352,7 +370,10 @@ get_model_regression <- function(data, var, level, log=TRUE) {
              "p_grow" = mod_data <- felm(log(def_value) ~ p_grow | market + yrmnth, data=data),
              "p_harv" = mod_data <- felm(log(def_value) ~ p_harv | market + yrmnth, data=data),
              "p_sup" = mod_data <- felm(log(def_value) ~ p_sup | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data))
+             "p_onemonth" = mod_data <- felm(log(def_value) ~ p_onemonth | market + yrmnth, data=data),
+             "p_twom" = mod_data <- felm(log(def_value) ~ p_twom | market + yrmnth, data=data),
+             "p_threem" = mod_data <- felm(log(def_value) ~ p_threem | market + yrmnth, data=data),
+             "p_sixm" = mod_data <- felm(log(def_value) ~ p_sixm | market + yrmnth, data=data))
       
     } else if(level == "log") {
       log <- function(x) ifelse(x <= 0, 0, base::log(x))
@@ -361,14 +382,20 @@ get_model_regression <- function(data, var, level, log=TRUE) {
              "p_grow" = mod_data <- felm(log(def_value) ~ log(p_grow) | market + yrmnth, data=data),
              "p_harv" = mod_data <- felm(log(def_value) ~ log(p_harv) | market + yrmnth, data=data),
              "p_sup" = mod_data <- felm(log(def_value) ~ log(p_sup) | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm(log(def_value) ~ log(p_onemonth) | market + yrmnth, data=data))
+             "p_onemonth" = mod_data <- felm(log(def_value) ~ log(p_onemonth) | market + yrmnth, data=data),
+             "p_twom" = mod_data <- felm(log(def_value) ~ log(p_twom) | market + yrmnth, data=data),
+             "p_threem" = mod_data <- felm(log(def_value) ~ log(p_threem) | market + yrmnth, data=data),
+             "p_sixm" = mod_data <- felm(log(def_value) ~ log(p_sixm) | market + yrmnth, data=data))
     } else {
       switch(var, 
              "p_sow" = mod_data <- felm(log(def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=data),
              "p_grow" = mod_data <- felm(log(def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
              "p_harv" = mod_data <- felm(log(def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
              "p_sup" = mod_data <- felm(log(def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
+             "p_onemonth" = mod_data <- felm(log(def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data),
+             "p_twom" = mod_data <- felm(log(def_value) ~ poly(p_twom,level,raw=T) | market + yrmnth, data=data),
+             "p_threem" = mod_data <- felm(log(def_value) ~ poly(p_threem,level,raw=T) | market + yrmnth, data=data),
+             "p_sixm" = mod_data <- felm(log(def_value) ~ poly(p_sixm,level,raw=T) | market + yrmnth, data=data))
     }
     
     return(mod_data)
@@ -381,7 +408,10 @@ get_model_regression <- function(data, var, level, log=TRUE) {
              "p_grow" = mod_data <- felm((def_value) ~ p_grow | market + yrmnth, data=data),
              "p_harv" = mod_data <- felm((def_value) ~ p_harv | market + yrmnth, data=data),
              "p_sup" = mod_data <- felm((def_value) ~ p_sup | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm((def_value) ~ p_onemonth | market + yrmnth, data=data))
+             "p_onemonth" = mod_data <- felm((def_value) ~ p_onemonth | market + yrmnth, data=data),
+             "p_twom" = mod_data <- felm((def_value) ~ p_twom | market + yrmnth, data=data),
+             "p_threem" = mod_data <- felm((def_value) ~ p_threem | market + yrmnth, data=data),
+             "p_sixm" = mod_data <- felm((def_value) ~ p_sixm | market + yrmnth, data=data))
       
     } else if(level == "log") {
       switch(var, 
@@ -389,14 +419,20 @@ get_model_regression <- function(data, var, level, log=TRUE) {
              "p_grow" = mod_data <- felm((def_value) ~ log(p_grow) | market + yrmnth, data=data),
              "p_harv" = mod_data <- felm((def_value) ~ log(p_harv) | market + yrmnth, data=data),
              "p_sup" = mod_data <- felm((def_value) ~ log(p_sup) | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm((def_value) ~ log(p_onemonth) | market + yrmnth, data=data))
+             "p_onemonth" = mod_data <- felm((def_value) ~ log(p_onemonth) | market + yrmnth, data=data),
+             "p_twom" = mod_data <- felm((def_value) ~ log(p_twom) | market + yrmnth, data=data),
+             "p_threem" = mod_data <- felm((def_value) ~ log(p_threem) | market + yrmnth, data=data),
+             "p_sixm" = mod_data <- felm((def_value) ~ log(p_sixm) | market + yrmnth, data=data))
     } else {
       switch(var, 
              "p_sow" = mod_data <- felm((def_value) ~ poly(p_sow,level,raw=T) | market + yrmnth, data=data),
              "p_grow" = mod_data <- felm((def_value) ~ poly(p_grow,level,raw=T) | market + yrmnth, data=data),
              "p_harv" = mod_data <- felm((def_value) ~ poly(p_harv,level,raw=T) | market + yrmnth, data=data),
              "p_sup" = mod_data <- felm((def_value) ~ poly(p_sup,level,raw=T) | market + yrmnth, data=data),
-             "p_onemonth" = mod_data <- felm((def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data))
+             "p_onemonth" = mod_data <- felm((def_value) ~ poly(p_onemonth,level,raw=T) | market + yrmnth, data=data),
+             "p_twom" = mod_data <- felm((def_value) ~ poly(p_twom,level,raw=T) | market + yrmnth, data=data),
+             "p_threem" = mod_data <- felm((def_value) ~ poly(p_threem,level,raw=T) | market + yrmnth, data=data),
+             "p_sixm" = mod_data <- felm((def_value) ~ poly(p_sixm,level,raw=T) | market + yrmnth, data=data))
     }
     
     return(mod_data)
