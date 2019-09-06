@@ -10,7 +10,7 @@ price <- readRDS("saved-output/formatted-price.rds")
 ## pick up args from commandline/sbatch
 args <- commandArgs(trailingOnly = TRUE)
 b <- as.numeric(args[1])
-bufs <- c(3, 4, 5)
+bufs <- c(.25, .5, .75, 1, 2, 3, 4, 5)
 buf <- bufs[b]
 
 # Arguments to change depending on what you want to run
@@ -44,7 +44,7 @@ for(run in 1:4) {
     
     ## run linear, quad, and 3rd regression and make a table
     commods <- list(sorghum, millet, maize)
-    types <- c("p_sow", "p_grow", "p_harv", "p_sup", "p_onemonth")
+    types <- c("p_sow", "p_grow", "p_harv", "p_sup", "p_onemonth", "p_twom", "p_threem", "p_sixm")
     final <- c()
     
      for(com in commods) {
@@ -67,18 +67,19 @@ for(run in 1:4) {
         p_llog <- all(summary(fllog)$coefficients[,4] < 0.05)
         
         gr <- as.character(com$type[1])
-        outcomes <- cbind(gr, t, AIC(llinear), p_llinear, 
-                          AIC(lquad), p_lquad, AIC(lthird), 
-                          p_lthird, AIC(llog), p_llog)
+        outcomes <- cbind(gr, t, 
+                          ifelse(p_llinear, AIC(llinear), "Not Significant"),
+                          ifelse(p_lquad, AIC(lquad), "Not Significant"),
+                          ifelse(p_lthird, AIC(lthird), "Not Significant"),
+                          ifelse(p_llog, AIC(llog), "Not Significant"))
         final <- rbind(final, outcomes)
         
       }
     }
     
-    colnames(final) <- c("grain", "time_period", "log_linear", "ll_pvals", "log_2", "l2_pvals",
-                         "log_3", "l3_pvals", "log_log", "lg_pvals")
     final <- as.data.frame(final)
     final <- cbind(final, rep(buf, nrow(final)))
+    colnames(final) <- c("grain", "time_period", "log_linear", "log_2", "log_3", "log_log", "buffer")
     all_final <- rbind(all_final, final)
   }
   
