@@ -40,14 +40,13 @@ ndvi_data <- c()
 for(i in 1:numfiles){
   print(i)
   
-  nd <- raster(ndvi_files[1])
+  nd <- raster(ndvi_files[1]) %>% crop(extent(croplands))
   
   temp <- c()
-  temp$date <- 
-  temp$location <- locs$market
-  
-  velox_obj <- velox(nd_stack[[i]])
-  temp_ndvi_by_point <- velox_obj$extract_points(sp = croplands_pts, small = T)
+  temp$date <- getZ(nd) 
+
+  velox_obj <- velox(nd)
+  temp_ndvi_by_point <- velox_obj$extract_points(sp = crop_points)
   
   temp$temp_mean <- lapply(temp_pVals, function(x){mean(x, na.rm = T)}) %>% unlist()  
   
