@@ -20,12 +20,14 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
 ## read in the cropland tif file as raster
 #croplands <- raster("../mosaic_cropland.tif", RAT = T)
 
-# get chirps dataset
-#precip_loc <- "/Users/aminaly/Desktop/chirps-v2.0.monthly.nc"
-#precipitation <- brick(precip_loc) %>% crop(attributes(croplands)$extent)  #extent pulled by reading contents of african shapefile. 
+## pick up args from commandline/sbatch
+years <- c(2007:2017)
+args <- commandArgs(trailingOnly = TRUE)
+y <- as.numeric(args[1])
+year <- years[y]
 
-#get all NDVI files
-ndvi_files <- list.files("../www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access/", recursive = T, pattern = "*.nc", full.names = T)
+#get all NDVI files for this year
+ndvi_files <- list.files(paste0("../www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access/", year), pattern = "*.nc", full.names = T)
 num_files <- length(ndvi_files)
 
 #Filter out only those that are croplands (=2) and turn into a bunch of points
@@ -40,23 +42,22 @@ ndvi_data <- c()
 for(i in 1:numfiles){
   print(i)
   
-  nd <- raster(ndvi_files[1]) %>% crop(extent(croplands))
+  nd <- raster(ndvi_files[i]) %>% crop(extent(croplands))
   
   temp <- c()
-  temp$date <- getZ(nd) 
+  temp$coords <- coordinates(crop_points)
+  temp$date <- rep(getZ(nd), nrow(temp$coords))
 
   velox_obj <- velox(nd)
   temp_ndvi_by_point <- velox_obj$extract_points(sp = crop_points)
   
-  temp$temp_mean <- lapply(temp_pVals, function(x){mean(x, na.rm = T)}) %>% unlist()  
+  temp$temp_mean <- lapply(temp_ndvi_by_point, function(x){mean(x, na.rm = T)}) %>% unlist()  
   
-  all_data <- bind_rows(all_data, temp)
-  i <- i+1
+  ndvi_data <- bind_rows(ndvi_data, temp)
 }
 
 #save this out to make my life easier
-saveRDS(all_data, paste0(getwd(), "/", rdsname))
-precip <- readRDS(rdsname)
-lon <- ncvar_get(croplandsty)
+saveRDS(ndvi_data, paste0(getwd(), paste0("/saved-output/ndvi_croplands_", year,".rds"))
+
 
 
