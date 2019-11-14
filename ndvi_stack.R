@@ -65,6 +65,7 @@ for(buf in bufs) {
   #first, lets crop the croplands by the markets to reduce the number of points we're dealing with
   cropped_crops <- raster::crop(croplands, markets_buffer)
   cropped_crops <- mask(cropped_crops, markets_buffer)
+  cropped_crops_points <- rasterToPoints(croplands, fun=function(x){x==2}, spatial=T)
   #cropped_crops <- trim(cropped_crops, values = NA)
   
   # Run through  ndvi files and extract over the cropland buffers
@@ -80,7 +81,7 @@ for(buf in bufs) {
     temp$date <- rep(getZ(nd), nrow(temp$coords))
     
     velox_obj <- velox(crop_points)
-    temp_ndvi_by_point <- velox_obj$extract(sp = cropped_crops, small = T)
+    temp_ndvi_by_point <- velox_obj$extract_points(sp = cropped_crops, small = T)
     
     temp$temp_mean <- lapply(temp_ndvi_by_point, function(x){mean(x, na.rm = T)}) %>% unlist()  
     
