@@ -17,8 +17,19 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
               setwd("/Users/aminaly/Box Sync/precip-price"),
               setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price")))
 
-## read in the cropland tif file as raster
-#croplands <- raster("../mosaic_cropland.tif", RAT = T)
+## read in the cropland tif file as raster and prep it
+croplands <- raster("../mosaic_cropland.tif", RAT = T)
+cl <- croplands %>% crop(c(20,30,0,10))
+cl <- clamp(cl, lower=2, useValues=FALSE)
+
+# percent of cell that is croplands
+perc <- function(x, na.rm = F) {
+  return( sum(!is.na(x)) / length(x))
+}
+
+# aggregate the cropland data
+cl_aggregated <- raster::aggregate(cl, (37106/200), fun = perc)
+
 
 #get price data
 price <- readRDS("saved-output/formatted-price.rds")
@@ -55,24 +66,20 @@ bufs <- c(.25, .5, .75, 1, 2, 3, 4, 5)
 for(buf in bufs) {
   
   #check to see if we've extracted before
-  rdsname <- paste0("ndvi/", buf, "_ndvi.rds")
+  #rdsname <- paste0("ndvi/", buf, "_ndvi.rds")
   #if(file.exists(paste0(getwd(), rdsname))) stop("Already exists")
   
   # set up the buffers for your markets
   markets_buffer = st_buffer(markets, buf)
   markets_buffer <- as(markets_buffer, 'Spatial')
   
-  #first, lets crop the croplands by the markets to reduce the number of points we're dealing with
-  cropped_crops <- raster::crop(croplands, markets_buffer)
-  cropped_crops <- mask(cropped_crops, markets_buffer)
-  cropped_crops_points <- rasterToPoints(croplands, fun=function(x){x==2}, spatial=T)
-  #cropped_crops <- trim(cropped_crops, values = NA)
-  
   # Run through  ndvi files and extract over the cropland buffers
   for(i in 1:numfiles){
     print(i)
     
-    nd <- raster(ndvi_files[i]) %>% crop(extent(croplands))
+    #Get NDVI and prep it to be masked by croplands
+    nd <- raster(ndvi_files[i]) %>% crop(c(20, 30, 0, 10))
+    nd_disagg <- disaggregate(nd, (37106/200))
     
     temp <- c()
     coords <- coordinates(crop_points)
