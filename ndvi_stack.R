@@ -1,35 +1,17 @@
 ## This is the file that will run through every single NDVI and first crop by 'croplands' 
 ## and then extract over markets
 
-library(sf)
-#library(sp)
-library(raster)
-library(velox)
-library(mapview)
-library(lfe)
-library(lubridate)
-library(ncdf4)
-library(rgdal)
+### SETUP
+library(sf); library(sp); library(raster)
+library(velox); library(lfe); library(ncdf4)
+library(rgdal); library(lubridate); library(mapview)
+library(inflection)
 
 ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
        setwd("/Users/amina/Documents/Stanford/precip-price"),
        ifelse(dir.exists("/Users/aminaly/Box Sync/precip-price"),
               setwd("/Users/aminaly/Box Sync/precip-price"),
               setwd("/oak/stanford/groups/omramom/group_members/aminaly/precip-price")))
-
-## read in the cropland tif file as raster and prep it
-croplands <- raster("../mosaic_cropland.tif", RAT = T)
-cl <- croplands %>% crop(c(20,30,0,10))
-cl <- clamp(cl, lower=2, useValues=FALSE)
-
-# percent of cell that is croplands
-perc <- function(x, na.rm = F) {
-  return( sum(!is.na(x)) / length(x))
-}
-
-# aggregate the cropland data
-cl_aggregated <- raster::aggregate(cl, (37106/200), fun = perc)
-
 
 #get price data
 price <- readRDS("saved-output/formatted-price.rds")
@@ -40,15 +22,30 @@ args <- commandArgs(trailingOnly = TRUE)
 y <- as.numeric(args[1])
 year <- years[y]
 
-#get all NDVI files for this year
-ndvi_files <- list.files(paste0("../www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access/", year), pattern = "*.nc", full.names = T)
+### CROPLAND PREP
+## This doesn't have to be run more than once so it's commented out
+## read in the cropland tif file as raster and prep it
+#croplands <- raster("../mosaic_cropland.tif", RAT = T)
+#cl <- croplands %>% crop(c(20,30,0,10))
+#cl <- clamp(cl, lower=2, useValues=FALSE)
+
+# percent of cell that is croplands
+#perc <- function(x, na.rm = F) {
+#  return( sum(!is.na(x)) / length(x))
+#}
+
+# aggregate the cropland data to match ndvi
+#cl_aggregated <- raster::aggregate(cl, (37106/200), fun = perc)
+# zeros should become NA
+#cl_aggregated[cl_aggregated == 0] <- NA
+#saveRDS(cl_aggregated, "./saved-output/aggregated_croplands.rds")
+cl_aggregated <- readRDS("./saved-output/aggregated_croplands.rds")
+
+#get all NDVI directories (one a year)
+ndvi_folders <- list.dirs(paste0("../www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access/"), full.names = T)
 num_files <- length(ndvi_files)
 
-#Filter out only those that are croplands (=2) and turn into a bunch of points
-#crop_points <- rasterToPoints(croplands, fun=function(x){x==2}, spatial=T)
-#saveRDS(crop_points, "../crop_as_points.rds")
-crop_points <- readRDS("../crop_as_points.rds")
-
+### MARKETS SETUP
 #get market locations 
 locs <- unique(price[,c(1:2,16:17)])
 locs <- locs[which(locs$latitude < 999),]
@@ -58,11 +55,20 @@ markets = st_as_sf(locs,coords=c("longitude","latitude"))
 st_crs(markets) <- 4326
 markets <- st_transform(markets, 4326)
 
+### CALCULATIONS FOR NDVI
 #Extract over points and get NDVI data only in croplands and then collective NDVI in market area
 ndvi_data <- c()
 bufs <- c(.25, .5, .75, 1, 2, 3, 4, 5)
 
-#first extract over NDVI in the markets (avg NDVI of croplands within x miles)
+# get the date of the inflection point and make a raster of it
+# this is done by using ese in the 'inflection' package
+get_inflection <- function(y) {
+  xs <- 1:length(y)
+  ind <- check_curve(xs, y)$index
+  inflec <- ese(xs, y, ind)[3]
+  return(inflec)
+}
+
 for(buf in bufs) {
   
   #check to see if we've extracted before
@@ -73,14 +79,23 @@ for(buf in bufs) {
   markets_buffer = st_buffer(markets, buf)
   markets_buffer <- as(markets_buffer, 'Spatial')
   
-  # Run through  ndvi files and extract over the cropland buffers
+  # Run through  ndvi stacks and: 
+  # 1. mask by croplands then 
+  # 2. flatten and return single raster of inflection month then 
+  # 3. extract over buffers
   for(i in 1:numfiles){
     print(i)
     
     #Get NDVI and prep it to be masked by croplands
-    nd <- raster(ndvi_files[i]) %>% crop(c(20, 30, 0, 10))
-    nd_disagg <- disaggregate(nd, (37106/200))
+    ndvi_files <- list.files(ndvi_folders[i], full.names = T, pattern = "*.nc")
+    nd_stack <- stack(ndvi_files) %>% crop(c(15, 35, -5, 15))
     
+    #mask by croplands first
+    m <- mask(nd_stack %>% crop(extent(cl_aggregated)), cl_aggregated)
+    
+    #flatten the stack to only get the inflection points
+    nd_flat <- calc(nd_stack, fun = get_inflection)
+
     temp <- c()
     coords <- coordinates(crop_points)
     temp$lon <- coords$x
@@ -102,24 +117,5 @@ for(buf in bufs) {
 }
 
 
-
-
-
-#save this out to make my life easier
-saveRDS(ndvi_data, paste0(getwd(), "/saved-output/ndvi_croplands_", year,".rds"))
-
-#Now run through each location and find the inflection points. We want a table of:
-# lat, lon, start month, end month
-
-coords <- coordinates(crop_points)
-for(i in nrow(coords)) {
-  
-  temp_coord <- coords[i,]
-  temp <- ndvi_data %>% filter(lon == temp_coord[1]) %>% filter(lat == temp_coord[2])
-  
-  
-  
-  
-}
 
 
