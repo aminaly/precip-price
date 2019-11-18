@@ -63,7 +63,9 @@ bufs <- c(.25, .5, .75, 1, 2, 3, 4, 5)
 # get the date of the inflection point and make a raster of it
 # this is done by using ese in the 'inflection' package
 get_inflection <- function(y) {
+  y <- na.omit(y)
   xs <- 1:length(y)
+  plot(xs, y, add = T)
   ind <- check_curve(xs, y)$index
   inflec <- ese(xs, y, ind)[3]
   return(inflec)
@@ -88,10 +90,11 @@ for(buf in bufs) {
     
     #Get NDVI and prep it to be masked by croplands
     ndvi_files <- list.files(ndvi_folders[i], full.names = T, pattern = "*.nc")
-    nd_stack <- stack(ndvi_files) %>% crop(c(15, 35, -5, 15))
+    nd_stack <- stack(ndvi_files) %>% crop(c(20,30,0,10))
     
     #mask by croplands first
-    m <- mask(nd_stack %>% crop(extent(cl_aggregated)), cl_aggregated)
+    cl_agg_resampled <- projectRaster(cl_aggregated, nd_stack, method='bilinear')
+    m <- mask(nd_stack, cl_agg_resampled)
     
     #flatten the stack to only get the inflection points
     nd_flat <- calc(nd_stack, fun = get_inflection)
