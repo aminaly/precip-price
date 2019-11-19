@@ -4,8 +4,7 @@
 ### SETUP
 library(sf); library(sp); library(raster)
 library(velox); library(lfe); library(ncdf4)
-library(rgdal); library(lubridate); library(mapview)
-library(inflection)
+library(rgdal); library(lubridate); library(inflection)
 
 ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
        setwd("/Users/amina/Documents/Stanford/precip-price"),
@@ -17,10 +16,10 @@ ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
 price <- readRDS("saved-output/formatted-price.rds")
 
 ## pick up args from commandline/sbatch
-years <- c(2007:2017)
-args <- commandArgs(trailingOnly = TRUE)
-y <- as.numeric(args[1])
-year <- years[y]
+# years <- c(2007:2017)
+# args <- commandArgs(trailingOnly = TRUE)
+# y <- as.numeric(args[1])
+# year <- years[y]
 
 ### CROPLAND PREP
 ## This doesn't have to be run more than once so it's commented out
@@ -42,8 +41,8 @@ year <- years[y]
 cl_aggregated <- readRDS("./saved-output/aggregated_croplands.rds")
 
 #get all NDVI directories (one a year)
-ndvi_folders <- list.dirs(paste0("../www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access/"), full.names = T)
-num_files <- length(ndvi_files)
+ndvi_folders <- list.dirs("../www.ncei.noaa.gov/data/avhrr-land-normalized-difference-vegetation-index/access", full.names = T)
+num_folders <- length(ndvi_folders)
 
 ### MARKETS SETUP
 #get market locations 
@@ -63,12 +62,20 @@ bufs <- c(.25, .5, .75, 1, 2, 3, 4, 5)
 # get the date of the inflection point and make a raster of it
 # this is done by using ese in the 'inflection' package
 get_inflection <- function(y) {
+  
+  #find the max NDVI value. This is peak growing season 
+  peak_grow_date <- which.max(y)
+  
+  # get rid of NAs and select only time after the peak growing
   y <- na.omit(y)
-  xs <- 1:length(y)
-  plot(xs, y, add = T)
-  ind <- check_curve(xs, y)$index
-  inflec <- ese(xs, y, ind)[3]
-  return(inflec)
+  y_post <- y[peak_grow_date:length(y)] 
+  xs <- 1:length(y_post)
+  
+  ind <- check_curve(xs, y_post)$index
+  inflec <- ese(xs, y_post, ind)[3]
+  
+  harvest <- peak_grow_date + inflec
+  return(harvest)
 }
 
 for(buf in bufs) {
@@ -85,7 +92,7 @@ for(buf in bufs) {
   # 1. mask by croplands then 
   # 2. flatten and return single raster of inflection month then 
   # 3. extract over buffers
-  for(i in 1:numfiles){
+  for(i in 2:numfiles){
     print(i)
     
     #Get NDVI and prep it to be masked by croplands
