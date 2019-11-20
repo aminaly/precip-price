@@ -5,6 +5,7 @@
 library(sf); library(sp); library(raster)
 library(velox); library(lfe); library(ncdf4)
 library(rgdal); library(lubridate); library(inflection)
+library(stringr)
 
 ifelse(dir.exists("/Users/amina/Documents/Stanford/precip-price"),
        setwd("/Users/amina/Documents/Stanford/precip-price"),
@@ -59,23 +60,44 @@ markets <- st_transform(markets, 4326)
 ndvi_data <- c()
 bufs <- c(.25, .5, .75, 1, 2, 3, 4, 5)
 
-# get the date of the inflection point and make a raster of it
+# Used by calc to get the date of the inflection point and make a flattened raster of it
 # this is done by using ese in the 'inflection' package
-get_inflection <- function(y) {
+get_inflection <- function(y, yr, timing) {
   
+  if(all(is.na(y))) return(-1)
+
   #find the max NDVI value. This is peak growing season 
   peak_grow_date <- which.max(y)
   
-  # get rid of NAs and select only time after the peak growing
+  # get rid of NAs and select only time after or before peak growing based on user input
   y <- na.omit(y)
-  y_post <- y[peak_grow_date:length(y)] 
-  xs <- 1:length(y_post)
+  if(timing =="pre") {
+    y_p <- y[1:peak_grow_date]
+  } else {
+    y_p <- y[peak_grow_date:length(y)]
+  }
   
-  ind <- check_curve(xs, y_post)$index
-  inflec <- ese(xs, y_post, ind)[3]
+  xs <- 1:length(y_p)
   
-  harvest <- peak_grow_date + inflec
-  return(harvest)
+  ind <- tryCatch({
+    check_curve(xs, y_p)$index
+    }, error = function(e) {
+      -1
+    })
+  
+  if(ind == -1) return(-1)
+  inflec <- ese(xs, y_p, ind)[3]
+  
+  timing <- ifelse("pre", peak_grow_date - inflec, peak_grow_date + inflec)
+  timing <- to_month(timing, yr)
+  return(timing)
+}
+
+## Given a day and year, return a date object of the correct month
+to_month <- function(day, year) {
+  first <- as.Date(paste0("1/1/", year), format="%m/%d/%Y")
+  
+  return(month(first+(day-1)))
 }
 
 for(buf in bufs) {
@@ -101,10 +123,12 @@ for(buf in bufs) {
     
     #mask by croplands first
     cl_agg_resampled <- projectRaster(cl_aggregated, nd_stack, method='bilinear')
-    m <- mask(nd_stack, cl_agg_resampled)
+    masked_nd <- mask(nd_stack, cl_agg_resampled)
     
     #flatten the stack to only get the inflection points
-    nd_flat <- calc(nd_stack, fun = get_inflection)
+    yr <- str_sub(ndvi_folders[i], start = -4)
+    nd_flat_pre <- calc(masked_nd, function(x){get_inflection(x, yr, "pre")})
+    nd_flat_post <- calc(masked_nd, function(x){get_inflection(x, yr, "post")})
 
     temp <- c()
     coords <- coordinates(crop_points)
