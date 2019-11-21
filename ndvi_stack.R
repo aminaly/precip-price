@@ -88,8 +88,8 @@ get_inflection <- function(y, yr, timing) {
   if(ind == -1) return(-1)
   inflec <- ese(xs, y_p, ind)[3]
   
-  timing <- ifelse("pre", peak_grow_date - inflec, peak_grow_date + inflec)
-  timing <- to_month(timing, yr)
+  ifelse(timing == "pre", day <- peak_grow_date - inflec, day <- peak_grow_date + inflec)
+  timing <- to_month(day, yr)
   return(timing)
 }
 
