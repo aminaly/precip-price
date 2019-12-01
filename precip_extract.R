@@ -16,7 +16,7 @@ if(file.exists("saved-output/precipitation.rds")) {
   precipitation <- readRDS("saved-output/precipitation.rds")
 } else {
   setwd("/Users/amina/Desktop/large_precip_price")
-  precipitation <- brick("chirps-v2-monthly.nc") %>% crop(c(-25.35, 51.41, -46.97, 37.34))  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
+  precipitation <- brick("chirps-v2-monthly.nc") %>% crop(c(-25.35, 51.41, -46.97, 37.34)  #extent pulled by reading contents of african shapefile. Throws error otherwise due to type
   setwd("/Users/amina/Documents/Stanford/precip-price/")
 }
 
