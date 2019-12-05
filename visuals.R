@@ -30,4 +30,4 @@ markets_buffer = st_buffer(markets, buf)
 markets_buffer <- as(markets_buffer, 'Spatial')
 
 # if you want to map over africa, use this 
-st_write(markets_buffer, "shapefiles/markets_buffer.shp")
+st_write(markets_buffer, "markets_buffer.shp")

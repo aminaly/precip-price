@@ -103,8 +103,7 @@ for(i in 2:num_folders){
   
   #Get NDVI and prep it to be masked by croplands
   ndvi_files <- list.files(ndvi_folders[i], full.names = T, pattern = "*.nc")
-  nd_stack <- stack(ndvi_files) %>% crop(c(20,30,0,10))
-  
+  plot  
   #mask by croplands first
   cl_agg_resampled <- projectRaster(cl_aggregated, nd_stack, method='bilinear')
   masked_nd <- mask(nd_stack, cl_agg_resampled)
@@ -160,6 +159,14 @@ locs <- locs[which(locs$latitude < 999),]
 markets = st_as_sf(locs,coords=c("longitude","latitude"))
 st_crs(markets) <- 3857
 markets <- st_transform(markets, 3857)
+
+for(buf in bufs) {
+  markets_buffer = st_buffer(markets, buf)
+  markets_buffer <- as(markets_buffer, 'Spatial')
+  markets_buffer <- st_as_sf(markets_buffer)
+  st_write(markets_buffer, paste0("./saved-output/buffers/market_buffer_", buf, ".shp"), update=T)
+  
+}
 
 ## Now lets do some extractions based on different buffers
 for(buf in bufs) {
